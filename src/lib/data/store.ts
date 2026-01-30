@@ -243,16 +243,23 @@ const mockMentorshipRequests: MentorshipRequest[] = [
 const mockSliderImages: SliderImage[] = [
     {
         id: 'slider-1',
-        imageUrl: '/images/slider/campus.jpg',
-        title: 'Welcome to VJIT Alumni Portal',
+        imageUrl: '/images/slider/campus-main.jpg',
+        title: 'Reconnecting the VJIT Family',
         order: 1,
         isActive: true
     },
     {
         id: 'slider-2',
-        imageUrl: '/images/slider/alumni-meet.jpg',
-        title: 'Annual Alumni Meet',
+        imageUrl: '/images/slider/alum-meet.jpg',
+        title: 'Celebrating Excellence & Achievements',
         order: 2,
+        isActive: true
+    },
+    {
+        id: 'slider-3',
+        imageUrl: '/images/slider/convocation.jpg',
+        title: 'Giving Back to Alma Mater',
+        order: 3,
         isActive: true
     }
 ];

@@ -33,9 +33,9 @@ export default function HomePage() {
   }, [sliderImages.length]);
 
   return (
-    <div className="font-inter text-gray-800">
+    <div className="font-inter text-gray-800 bg-[#FCFCFD]">
       {/* Hero Section */}
-      <section className="relative h-[500px] md:h-[600px] overflow-hidden bg-gray-900">
+      <section className="relative h-[600px] overflow-hidden bg-gray-900 border-b-4 border-[#DAA520]">
         {sliderImages.length > 0 ? (
           <>
             {sliderImages.map((slide, index) => (
@@ -43,171 +43,227 @@ export default function HomePage() {
                 key={slide.id}
                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
               >
-                {/* Gradient Overlay for better text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
 
-                {/* Fallback color if image fails loading/not real */}
+                {/* Image Placeholder */}
                 <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-                  {/* Placeholder for real image */}
-                  <span className="text-gray-600">Image: {slide.imageUrl}</span>
+                  <span className="text-gray-600 font-mono text-sm tracking-widest uppercase">Display Image: {slide.imageUrl}</span>
                 </div>
 
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4">
-                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-md tracking-tight animate-fadeInUp">
-                    {slide.title}
-                  </h1>
-                  <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-3xl drop-shadow font-light animate-fadeInUp delay-100">
-                    Connecting Generations of VJIT Excellence
-                  </p>
-                  <div className="flex gap-4 animate-fadeInUp delay-200">
-                    <Link href="/register" className="bg-[#DAA520] text-black px-8 py-3 rounded-full font-semibold hover:bg-white transition-all shadow-lg transform hover:-translate-y-1">
-                      Join the Network
-                    </Link>
-                    <Link href="/alumni-directory" className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-black transition-all shadow-lg">
-                      Find Alumni
-                    </Link>
+                <div className="absolute inset-0 z-20 container mx-auto px-4 flex flex-col justify-center">
+                  <div className="max-w-2xl animate-fadeInUp">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg font-serif">
+                      {slide.title}
+                    </h1>
+                    <p className="text-xl md:text-2xl text-gray-100 mb-8 font-light leading-relaxed drop-shadow-md border-l-4 border-[#DAA520] pl-6 py-2 bg-black/10 backdrop-blur-sm rounded-r-lg">
+                      Fostering a lifelong connection between the Institute and its Alumni.
+                    </p>
+                    <div className="flex gap-4 pt-4">
+                      <Link href="/register" className="bg-[#DAA520] text-[#1a1a1a] px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-white hover:text-[#800000] transition-all shadow-lg transform hover:-translate-y-1">
+                        Join Community
+                      </Link>
+                      <Link href="/alumni-directory" className="border-2 border-white text-white px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-white hover:text-[#1a1a1a] transition-all shadow-lg">
+                        Search Directory
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
-
-            {/* Slider Dots */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-30">
-              {sliderImages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide ? 'bg-[#DAA520] w-8' : 'bg-white/50 hover:bg-white'}`}
-                />
-              ))}
-            </div>
           </>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center relative">
-            <div className="absolute inset-0 bg-[#800000] z-0" />
-            <div className="z-10 text-center text-white p-8">
-              <h1 className="text-5xl font-bold mb-6">Welcome to VJIT Alumni Portal</h1>
-              <p className="text-xl mb-8 opacity-90">Building a Stronger Community Together</p>
-              <Link href="/register" className="bg-white text-[#800000] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors">
-                Get Started
-              </Link>
+          <div className="absolute inset-0 bg-[#800000] flex items-center justify-center relative z-0">
+            <div className="text-white text-center">
+              <h1 className="text-5xl font-bold mb-4 font-serif">Welcome to VJIT Alumni Association</h1>
+              <p className="text-xl opacity-90">Connecting Excellence</p>
             </div>
           </div>
         )}
-      </section>
 
-      {/* Statistics Bar - Negative Margin to overlap Hero */}
-      <section className="relative z-30 -mt-16 container mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100">
-          <StatItem value={stats.totalAlumni} label="Alumni Members" icon="🎓" />
-          <StatItem value={stats.totalStudents} label="Current Students" icon="📚" />
-          <StatItem value={stats.totalEvents} label="Events Hosted" icon="📅" />
-          <StatItem value={stats.activeJobs} label="Career Opportunities" icon="💼" isLast />
+        {/* Slider Controls */}
+        <div className="absolute bottom-8 right-8 z-30 flex gap-2">
+          {sliderImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`h-1.5 transition-all duration-300 rounded-full ${index === currentSlide ? 'bg-[#DAA520] w-8' : 'bg-white/50 w-4 hover:bg-white'}`}
+            />
+          ))}
         </div>
       </section>
 
-      {/* Main Content Sections */}
-      <div className="container mx-auto px-4 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <section className="relative z-30 -mt-20 container mx-auto px-4 mb-20">
+        <div className="bg-white rounded shadow-2xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100 border-t-4 border-[#1e293b]">
+          <StatItem value={stats.totalAlumni} label="Alumni" icon="img:grad_cap" />
+          <StatItem value={stats.totalStudents} label="Students" icon="img:book" />
+          <StatItem value={stats.totalEvents} label="Events" icon="img:calendar" />
+          <StatItem value={stats.activeJobs} label="Opportunities" icon="img:briefcase" isLast />
+        </div>
+      </section>
 
-          {/* Left Column: Notices & Updates */}
-          <div className="lg:col-span-1 space-y-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-              <div className="bg-[#800000] text-white px-6 py-4 flex justify-between items-center">
-                <h2 className="text-lg font-bold tracking-wide">NOTICE BOARD</h2>
-                <span className="text-xs bg-white/20 px-2 py-1 rounded">Latest</span>
-              </div>
-              <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {notices.length > 0 ? (
-                  notices.map((notice) => (
-                    <Link href="#" key={notice.id} className="block p-5 hover:bg-gray-50 transition-colors group">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${notice.type === 'important' ? 'bg-red-100 text-red-600' :
-                            notice.type === 'event' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                          {notice.type?.toUpperCase() || 'NEWS'}
-                        </span>
-                        <span className="text-xs text-gray-400">{notice.date}</span>
-                      </div>
-                      <h3 className="text-sm font-semibold text-gray-800 leading-snug group-hover:text-[#800000] transition-colors">
-                        {notice.title}
-                      </h3>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-gray-500 text-sm">No new notices.</div>
-                )}
-              </div>
-              <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
-                <Link href="#" className="text-xs font-semibold text-[#800000] hover:underline">VIEW ARCHIVE</Link>
-              </div>
+      {/* Welcome & President's Message */}
+      <section className="container mx-auto px-4 mb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="inline-block border-b-2 border-[#DAA520] pb-1 mb-2">
+              <span className="text-[#1e293b] font-bold text-sm tracking-widest uppercase">From the President's Desk</span>
             </div>
-
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-              <h3 className="font-bold text-gray-800 mb-2">Have an Update?</h3>
-              <p className="text-sm text-gray-600 mb-4">Share you achievements with the community.</p>
-              <Link href="/dashboard/alumni" className="inline-block border border-gray-300 bg-white px-4 py-2 rounded text-sm font-medium hover:border-[#800000] hover:text-[#800000] transition-colors">
-                Submit News
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-serif leading-tight">
+              Strengthening Bonds,<br />Building Future.
+            </h2>
+            <div className="prose prose-lg text-gray-600">
+              <p>
+                "The VJIT Alumni Association acts as a bridge between the illustrious alumni and their alma mater. We take immense pride in the achievements of our graduates who are making their mark across the globe."
+              </p>
+              <p>
+                We invite you to be an active part of this vibrant community. Your engagement helps current students aspire for greatness and keeps the VJIT spirit alive.
+              </p>
+            </div>
+            <div className="pt-4 flex gap-4">
+              <Link href="/about" className="text-[#1e293b] font-bold border-b border-[#1e293b] hover:text-[#DAA520] hover:border-[#DAA520] transition-colors pb-1">
+                Read Full Message &rarr;
               </Link>
             </div>
           </div>
-
-          {/* Right Column: Events & Jobs */}
-          <div className="lg:col-span-2 space-y-12">
-
-            {/* Upcoming Events */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 border-l-4 border-[#DAA520] pl-4">Upcoming Events</h2>
-                <Link href="/events" className="text-sm font-semibold text-[#800000] hover:underline">View All &rarr;</Link>
+          <div className="relative">
+            <div className="absolute -inset-4 bg-[#DAA520]/10 rounded-lg transform rotate-2"></div>
+            <div className="relative bg-white p-2 shadow-xl rounded-lg transform -rotate-1">
+              {/* Placeholder for Video or Image */}
+              <div className="aspect-video bg-gray-200 rounded flex items-center justify-center relative overflow-hidden group cursor-pointer">
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <span className="text-[#DAA520] text-3xl ml-1">▶</span>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {upcomingEvents.length > 0 ? (
-                  upcomingEvents.map(event => (
-                    <EventCard key={event.id} event={event} />
-                  ))
-                ) : (
-                  <div className="col-span-2 bg-gray-50 rounded p-8 text-center text-gray-500">
-                    No upcoming events scheduled. check back later.
-                  </div>
-                )}
+              <div className="p-4 text-center">
+                <p className="font-serif italic text-gray-500">"Alumni are the true ambassadors of VJIT."</p>
+                <p className="text-xs font-bold text-[#1e293b] mt-2 uppercase">- President, VJITAA</p>
               </div>
-            </section>
-
-            {/* Jobs */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 border-l-4 border-[#DAA520] pl-4">Career Opportunities</h2>
-                <Link href="/jobs" className="text-sm font-semibold text-[#800000] hover:underline">View All &rarr;</Link>
-              </div>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-100">
-                {recentJobs.length > 0 ? (
-                  recentJobs.map(job => (
-                    <JobRow key={job.id} job={job} />
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-gray-500">No active job listings.</div>
-                )}
-              </div>
-            </section>
-
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Call to Action */}
-      <section className="bg-[#800000] text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Proud to be VJITian?</h2>
-          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-            Join our official alumni network to mentor students, share opportunities, and stay connected with your alma mater.
+      {/* Highlights Section */}
+      <section className="bg-gray-50 py-20 border-t border-gray-200">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <span className="text-[#1e293b] font-bold text-sm tracking-widest uppercase mb-2 block">Updates</span>
+            <h2 className="text-3xl font-bold text-gray-900 font-serif">Latest from Campus</h2>
+            <div className="w-16 h-1 bg-[#DAA520] mx-auto mt-4"></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Events Column */}
+            <div className="bg-white p-8 rounded shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <span className="text-[#DAA520]">📅</span> Upcoming Events
+                </h3>
+                <Link href="/events" className="text-xs font-bold text-gray-400 hover:text-[#1e293b]">VIEW ALL</Link>
+              </div>
+              <div className="space-y-6">
+                {upcomingEvents.length > 0 ? (
+                  upcomingEvents.map(event => (
+                    <div key={event.id} className="group cursor-pointer">
+                      <div className="flex gap-4">
+                        <div className="bg-gray-100 rounded p-2 text-center min-w-[60px]">
+                          <span className="block text-xs font-bold text-gray-500 uppercase">{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
+                          <span className="block text-xl font-bold text-[#1e293b]">{new Date(event.date).getDate()}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-800 group-hover:text-[#DAA520] transition-colors leading-tight mb-1">{event.title}</h4>
+                          <p className="text-xs text-gray-500">{event.time} @ {event.venue}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No upcoming events.</p>
+                )}
+              </div>
+            </div>
+
+            {/* News/Notices Column */}
+            <div className="bg-white p-8 rounded shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <span className="text-[#DAA520]">📢</span> News & Notices
+                </h3>
+                <Link href="#" className="text-xs font-bold text-gray-400 hover:text-[#1e293b]">VIEW ALL</Link>
+              </div>
+              <div className="space-y-6">
+                {notices.length > 0 ? (
+                  notices.slice(0, 3).map(notice => (
+                    <div key={notice.id} className="border-b border-gray-50 last:border-0 pb-4 last:pb-0">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-[10px] font-bold text-[#DAA520] bg-[#DAA520]/10 px-2 py-0.5 rounded uppercase">{notice.type || 'General'}</span>
+                        <span className="text-[10px] text-gray-400">{notice.date}</span>
+                      </div>
+                      <h4 className="font-medium text-gray-800 hover:text-[#DAA520] cursor-pointer transition-colors leading-snug">{notice.title}</h4>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No recent notices.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Spotlight/Jobs Column */}
+            <div className="bg-white p-8 rounded shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <span className="text-[#DAA520]">💼</span> Career
+                </h3>
+                <Link href="/jobs" className="text-xs font-bold text-gray-400 hover:text-[#1e293b]">VIEW ALL</Link>
+              </div>
+
+              <div className="space-y-6">
+                {recentJobs.length > 0 ? (
+                  recentJobs.map(job => (
+                    <div key={job.id} className="flex gap-4 items-start group">
+                      <div className="w-10 h-10 bg-gray-50 rounded border border-gray-100 flex items-center justify-center text-gray-400 text-lg">
+                        🏢
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-800 group-hover:text-[#DAA520] transition-colors leading-tight">{job.title}</h4>
+                        <p className="text-xs text-gray-500 mb-1">{job.company}</p>
+                        <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-medium">{job.type}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No active job listings.</p>
+                )}
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <Link href="/dashboard/alumni" className="block w-full text-center bg-gray-50 text-gray-600 py-2 rounded text-sm font-bold hover:bg-[#1e293b] hover:text-white transition-all">
+                  Post a Job
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Band */}
+      <section className="bg-[#1e293b] py-16 relative overflow-hidden font-sans border-t border-gray-700">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#DAA520]/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+
+        <div className="container mx-auto px-4 relative z-10 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4 font-serif">Stay Connected to VJIT</h2>
+          <p className="text-gray-200 mb-8 max-w-xl mx-auto text-lg">
+            Update your contact information, share your achievements, and mentor the next generation.
           </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/register" className="bg-white text-[#800000] px-8 py-3 rounded shadow hover:bg-gray-100 font-semibold transition-colors">
-              Register Now
+          <div className="flex justify-center gap-6">
+            <Link href="/login" className="bg-white text-[#1e293b] !text-[#1e293b] px-8 py-3 rounded font-bold hover:bg-gray-100 shadow-lg transition-transform hover:-translate-y-1">
+              Login to Portal
             </Link>
-            <Link href="/about" className="border border-white text-white px-8 py-3 rounded hover:bg-white/10 font-semibold transition-colors">
-              Learn More
+            <Link href="/register" className="bg-[#DAA520] text-[#1e293b] !text-[#1e293b] px-8 py-3 rounded font-bold hover:bg-[#b8860b] hover:text-white transition-transform hover:-translate-y-1 shadow-lg">
+              Register as Alumni
             </Link>
           </div>
         </div>
@@ -216,59 +272,20 @@ export default function HomePage() {
   );
 }
 
-// Sub-components for cleaner code
 function StatItem({ value, label, icon, isLast }: { value: number; label: string; icon: string; isLast?: boolean }) {
+  // Icons mapping for simplicity
+  const icons: { [key: string]: string } = {
+    'img:grad_cap': '🎓',
+    'img:book': '📚',
+    'img:calendar': '📅',
+    'img:briefcase': '💼'
+  };
+
   return (
-    <div className={`text-center ${!isLast ? '' : ''}`}>
-      <div className="text-3xl mb-2">{icon}</div>
-      <div className="text-4xl font-bold text-gray-900 mb-1">{value}+</div>
-      <div className="text-sm font-medium text-gray-500 uppercase tracking-wide">{label}</div>
+    <div className={`text-center py-2 ${!isLast ? '' : ''} group`}>
+      <div className="text-4xl mb-3 text-[#E0E0E0] group-hover:text-[#DAA520] transition-colors">{icons[icon]}</div>
+      <div className="text-4xl font-bold text-gray-800 mb-1">{value}+</div>
+      <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</div>
     </div>
   );
-}
-
-function EventCard({ event }: { event: Event }) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
-      <div className="h-40 bg-gray-200 relative overflow-hidden">
-        {/* Fallback pattern or image */}
-        <div className="absolute inset-0 bg-[#800000]/10 group-hover:bg-[#800000]/20 transition-colors" />
-        <div className="absolute bottom-0 left-0 bg-white/90 px-3 py-1 text-xs font-bold text-[#800000] uppercase rounded-tr-lg">
-          {event.eventType}
-        </div>
-      </div>
-      <div className="p-5">
-        <div className="text-xs font-semibold text-[#DAA520] mb-2 uppercase tracking-wider">{event.date} • {event.time}</div>
-        <h3 className="text-lg font-bold text-gray-800 mb-2 leading-tight group-hover:text-[#800000] transition-colors">{event.title}</h3>
-        <div className="flex items-center text-gray-500 text-sm mb-4">
-          <span className="mr-2">📍</span> {event.venue}
-        </div>
-        <Link href={`/events/${event.id}`} className="text-sm font-semibold text-[#800000] hover:underline">
-          Event Details &rarr;
-        </Link>
-      </div>
-    </div>
-  )
-}
-
-function JobRow({ job }: { job: Job }) {
-  return (
-    <div className="p-6 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition-colors group">
-      <div>
-        <h3 className="text-lg font-bold text-gray-800 group-hover:text-[#800000] transition-colors">{job.title}</h3>
-        <div className="text-sm text-gray-600 mt-1">
-          <span className="font-medium text-gray-900">{job.company}</span> • {job.location}
-        </div>
-        <div className="flex gap-2 mt-3">
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{job.type}</span>
-          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">New</span>
-        </div>
-      </div>
-      <div className="mt-4 md:mt-0">
-        <Link href={`/jobs/${job.id}`} className="inline-block border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm font-medium hover:border-[#800000] hover:text-[#800000] transition-colors">
-          View Job
-        </Link>
-      </div>
-    </div>
-  )
 }
