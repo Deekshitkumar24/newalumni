@@ -143,6 +143,7 @@ const mockEvents: Event[] = [
         time: '10:00 AM',
         venue: 'VJIT Main Auditorium',
         eventType: 'upcoming',
+        status: 'upcoming',
         registrations: ['alumni-1', 'alumni-2'],
         createdBy: 'admin-1',
         createdAt: '2024-01-10T10:00:00Z'
@@ -155,6 +156,7 @@ const mockEvents: Event[] = [
         time: '3:00 PM',
         venue: 'Seminar Hall Block A',
         eventType: 'upcoming',
+        status: 'upcoming',
         registrations: ['student-1', 'student-2'],
         createdBy: 'admin-1',
         createdAt: '2024-01-15T11:00:00Z'
@@ -167,6 +169,7 @@ const mockEvents: Event[] = [
         time: '8:00 AM',
         venue: 'VJIT Sports Ground',
         eventType: 'past',
+        status: 'past',
         registrations: ['alumni-1', 'alumni-3'],
         createdBy: 'admin-1',
         createdAt: '2025-11-01T10:00:00Z'
@@ -187,7 +190,8 @@ const mockJobs: Job[] = [
         postedBy: 'alumni-1',
         postedByName: 'Sanjay Patel',
         postedAt: '2026-01-20T10:00:00Z',
-        isActive: true
+        isActive: true,
+        status: 'active'
     },
     {
         id: 'job-2',
@@ -201,7 +205,8 @@ const mockJobs: Job[] = [
         postedBy: 'alumni-2',
         postedByName: 'Sneha Rao',
         postedAt: '2026-01-15T11:00:00Z',
-        isActive: true
+        isActive: true,
+        status: 'active'
     },
     {
         id: 'job-3',
@@ -214,7 +219,8 @@ const mockJobs: Job[] = [
         postedBy: 'alumni-3',
         postedByName: 'Kiran Verma',
         postedAt: '2026-01-10T09:00:00Z',
-        isActive: true
+        isActive: true,
+        status: 'active'
     }
 ];
 
@@ -243,23 +249,51 @@ const mockMentorshipRequests: MentorshipRequest[] = [
 const mockSliderImages: SliderImage[] = [
     {
         id: 'slider-1',
-        imageUrl: '/images/slider/campus-main.jpg',
+        imageUrl: '/images/slider/campus-main.png',
         title: 'Reconnecting the VJIT Family',
         order: 1,
         isActive: true
     },
     {
         id: 'slider-2',
-        imageUrl: '/images/slider/alum-meet.jpg',
+        imageUrl: '/images/slider/alum-meet.png',
         title: 'Celebrating Excellence & Achievements',
         order: 2,
         isActive: true
     },
     {
         id: 'slider-3',
-        imageUrl: '/images/slider/convocation.jpg',
+        imageUrl: '/images/slider/convocation.png',
         title: 'Giving Back to Alma Mater',
         order: 3,
+        isActive: true
+    },
+    {
+        id: 'slider-4',
+        imageUrl: '/images/slider/innovation-lab.png',
+        title: 'Innovating for the Future',
+        order: 4,
+        isActive: true
+    },
+    {
+        id: 'slider-5',
+        imageUrl: '/images/slider/cultural-fest.png',
+        title: 'Vibrant Campus Life',
+        order: 5,
+        isActive: true
+    },
+    {
+        id: 'slider-6',
+        imageUrl: '/images/slider/library.png',
+        title: 'Pursuing Academic Excellence',
+        order: 6,
+        isActive: true
+    },
+    {
+        id: 'slider-7',
+        imageUrl: '/images/slider/guest-lecture.png',
+        title: 'Alumni Mentoring Next Gen',
+        order: 7,
         isActive: true
     }
 ];
@@ -345,7 +379,36 @@ const mockBatchPosts: BatchPost[] = [
 ];
 
 // Mock Gallery
-const mockGallery: GalleryImage[] = [];
+const mockGallery: GalleryImage[] = [
+    {
+        id: 'gallery-1',
+        title: 'Alumni Reunion Group',
+        imageUrl: '/images/gallery/reunion.png',
+        category: 'reunion',
+        date: '2026-03-15'
+    },
+    {
+        id: 'gallery-2',
+        title: 'Technology Workshop',
+        imageUrl: '/images/gallery/workshop.png',
+        category: 'events',
+        date: '2026-02-10'
+    },
+    {
+        id: 'gallery-3',
+        title: 'Convocation Ceremony Auditorium',
+        imageUrl: '/images/gallery/auditorium.png',
+        category: 'events',
+        date: '2025-11-20'
+    },
+    {
+        id: 'gallery-4',
+        title: 'Campus at Twilight',
+        imageUrl: '/images/gallery/campus-night.png',
+        category: 'campus',
+        date: '2026-01-05'
+    }
+];
 
 // ===========================================
 // DATA ACCESS FUNCTIONS
@@ -393,9 +456,8 @@ export function initializeData(): void {
     if (!localStorage.getItem('vjit_mentorship')) {
         saveData('vjit_mentorship', mockMentorshipRequests);
     }
-    if (!localStorage.getItem('vjit_slider')) {
-        saveData('vjit_slider', mockSliderImages);
-    }
+    // Always reset slider images to ensure new assets are loaded (fixes 404s from stale localStorage)
+    saveData('vjit_slider', mockSliderImages);
     if (!localStorage.getItem('vjit_notices')) {
         saveData('vjit_notices', mockNotices);
     }
@@ -408,9 +470,8 @@ export function initializeData(): void {
     if (!localStorage.getItem('vjit_batch_posts')) {
         saveData('vjit_batch_posts', mockBatchPosts);
     }
-    if (!localStorage.getItem('vjit_gallery')) {
-        saveData('vjit_gallery', mockGallery);
-    }
+    // Always reset gallery images to ensure new assets are loaded (fixes empty gallery issue)
+    saveData('vjit_gallery', mockGallery);
 }
 
 // ===========================================
@@ -427,6 +488,54 @@ export function getStudents(): Student[] {
 
 export function getAlumni(): Alumni[] {
     return getStoredData('vjit_alumni', mockAlumni);
+}
+
+export function getAlumniPaginated(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    department: string = 'All Departments',
+    year: string = 'All Years'
+): { data: Alumni[]; total: number; totalPages: number } {
+    let alumni = getAlumni().filter(a => a.status === 'approved');
+
+    if (search) {
+        const lowerSearch = search.toLowerCase();
+        alumni = alumni.filter(a =>
+            a.name.toLowerCase().includes(lowerSearch) ||
+            a.currentCompany?.toLowerCase().includes(lowerSearch) ||
+            a.currentRole?.toLowerCase().includes(lowerSearch)
+        );
+    }
+
+    if (department !== 'All Departments') {
+        alumni = alumni.filter(a => a.department === department);
+    }
+
+    if (year !== 'All Years') {
+        alumni = alumni.filter(a => a.graduationYear === parseInt(year));
+    }
+
+    const total = alumni.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const data = alumni.slice(startIndex, startIndex + limit);
+
+    return { data, total, totalPages };
+}
+
+export function updateAlumniProfile(id: string, data: Partial<Alumni>): boolean {
+    const alumniList = getAlumni();
+    const index = alumniList.findIndex(a => a.id === id);
+
+    if (index !== -1) {
+        // Prevent editing sensitive fields like email or id via this method if needed
+        // For now, allow partial updates
+        alumniList[index] = { ...alumniList[index], ...data };
+        saveData('vjit_alumni', alumniList);
+        return true;
+    }
+    return false;
 }
 
 export function getUsers(): User[] {
@@ -456,6 +565,14 @@ export function authenticateUser(email: string, password: string): User | null {
     return null;
 }
 
+export function getStudentById(id: string): Student | undefined {
+    return getStudents().find(s => s.id === id);
+}
+
+export function getAlumniById(id: string): Alumni | undefined {
+    return getAlumni().find(a => a.id === id);
+}
+
 export function registerStudent(data: Omit<Student, 'id' | 'createdAt' | 'status'>): Student {
     const students = getStudents();
     const newStudent: Student = {
@@ -482,28 +599,127 @@ export function registerAlumni(data: Omit<Alumni, 'id' | 'createdAt' | 'status'>
     return newAlumni;
 }
 
-export function updateUserStatus(userId: string, status: 'approved' | 'rejected'): void {
-    const students = getStudents();
-    const alumni = getAlumni();
+export function getStudentsPaginated(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    department: string = 'All Departments',
+    year: string = 'All Years',
+    sort: 'recent' | 'alphabetical' | 'year' = 'recent'
+): { data: Student[], total: number, totalPages: number } {
+    let students = getStudents();
 
-    const studentIndex = students.findIndex(s => s.id === userId);
-    if (studentIndex !== -1) {
-        students[studentIndex].status = status;
-        saveData('vjit_students', students);
-        return;
+    if (search) {
+        const lowerSearch = search.toLowerCase();
+        students = students.filter(s =>
+            s.name.toLowerCase().includes(lowerSearch) ||
+            s.rollNumber.toLowerCase().includes(lowerSearch) ||
+            s.email.toLowerCase().includes(lowerSearch) ||
+            s.department.toLowerCase().includes(lowerSearch) ||
+            s.graduationYear.toString().includes(lowerSearch)
+        );
     }
 
-    const alumniIndex = alumni.findIndex(a => a.id === userId);
-    if (alumniIndex !== -1) {
-        alumni[alumniIndex].status = status;
-        saveData('vjit_alumni', alumni);
+    if (department !== 'All Departments') {
+        students = students.filter(s => s.department === department);
     }
+
+    if (year !== 'All Years') {
+        students = students.filter(s => s.graduationYear === parseInt(year));
+    }
+
+    // Sorting
+    students.sort((a, b) => {
+        if (sort === 'alphabetical') {
+            return a.name.localeCompare(b.name);
+        } else if (sort === 'year') {
+            return b.graduationYear - a.graduationYear; // Newest graduates first
+        } else {
+            // Recent / Default (based on createdAt if available, else standard order)
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+    });
+
+    const total = students.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const data = students.slice(startIndex, startIndex + limit);
+
+    return { data, total, totalPages };
 }
+
+export function getEventRegistrationsPaginated(
+    eventId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    department: string = 'All Departments',
+    year: string = 'All Years',
+    status: 'all' | 'pending' | 'approved' | 'rejected' = 'all',
+    sort: 'recent' | 'alphabetical' | 'year' = 'recent'
+): { data: Student[], total: number, totalPages: number } {
+    const event = getEvents().find(e => e.id === eventId);
+    if (!event) return { data: [], total: 0, totalPages: 0 };
+
+    const allStudents = getStudents();
+    let registeredStudents = allStudents.filter(s => event.registrations.includes(s.id));
+
+    if (search) {
+        const lowerSearch = search.toLowerCase();
+        registeredStudents = registeredStudents.filter(s =>
+            s.name.toLowerCase().includes(lowerSearch) ||
+            s.rollNumber.toLowerCase().includes(lowerSearch) ||
+            s.email.toLowerCase().includes(lowerSearch)
+        );
+    }
+
+    if (department !== 'All Departments') {
+        registeredStudents = registeredStudents.filter(s => s.department === department);
+    }
+
+    if (year !== 'All Years') {
+        registeredStudents = registeredStudents.filter(s => s.graduationYear === parseInt(year));
+    }
+
+    // In a real app, registration might have its own status. 
+    // Here we assume the student's global status or if we had a registration object.
+    // For now, if we want to filter by student status:
+    if (status !== 'all') {
+        registeredStudents = registeredStudents.filter(s => s.status === status);
+    }
+
+    registeredStudents.sort((a, b) => {
+        if (sort === 'alphabetical') {
+            return a.name.localeCompare(b.name);
+        } else if (sort === 'year') {
+            return b.graduationYear - a.graduationYear;
+        } else {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+    });
+
+    const total = registeredStudents.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const data = registeredStudents.slice(startIndex, startIndex + limit);
+
+    return { data, total, totalPages };
+}
+
+// Old updateUserStatus removed in favor of more generic one below
 
 export function getPendingUsers(): User[] {
     const students = getStudents().filter(s => s.status === 'pending');
     const alumni = getAlumni().filter(a => a.status === 'pending');
     return [...students, ...alumni];
+}
+
+export function approveUser(userId: string, role: 'student' | 'alumni'): void {
+    updateUserStatus(userId, 'approved');
+}
+
+export function rejectUser(userId: string, role: 'student' | 'alumni'): void {
+    updateUserStatus(userId, 'rejected');
 }
 
 // ===========================================
@@ -515,22 +731,45 @@ export function getEvents(): Event[] {
 }
 
 export function getUpcomingEvents(): Event[] {
-    return getEvents().filter(e => e.eventType === 'upcoming');
+    return getEvents().filter(e => e.eventType === 'upcoming' && e.status === 'upcoming');
 }
 
 export function getPastEvents(): Event[] {
-    return getEvents().filter(e => e.eventType === 'past');
+    return getEvents().filter(e => e.eventType === 'past' && e.status === 'past');
+}
+
+export function getEventsPaginated(
+    page: number = 1,
+    limit: number = 9,
+    type: 'upcoming' | 'past' = 'upcoming'
+): { data: Event[]; total: number; totalPages: number } {
+    let events = getEvents().filter(e => e.eventType === type);
+
+    // Sort: Upcoming -> Closest first, Past -> Most recent first
+    events.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return type === 'upcoming' ? dateA - dateB : dateB - dateA;
+    });
+
+    const total = events.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const data = events.slice(startIndex, startIndex + limit);
+
+    return { data, total, totalPages };
 }
 
 export function getEventById(id: string): Event | undefined {
     return getEvents().find(e => e.id === id);
 }
 
-export function createEvent(data: Omit<Event, 'id' | 'createdAt' | 'registrations'>): Event {
+export function createEvent(data: Omit<Event, 'id' | 'createdAt' | 'registrations' | 'status'> & { status?: 'upcoming' | 'pending' }): Event {
     const events = getEvents();
     const newEvent: Event = {
         ...data,
         id: `event-${Date.now()}`,
+        status: data.status || 'pending',
         registrations: [],
         createdAt: new Date().toISOString()
     };
@@ -562,6 +801,10 @@ export function registerForEvent(eventId: string, userId: string): void {
     }
 }
 
+export function getPendingEvents(): Event[] {
+    return getEvents().filter(e => e.status === 'pending');
+}
+
 // ===========================================
 // JOB FUNCTIONS
 // ===========================================
@@ -570,8 +813,44 @@ export function getJobs(): Job[] {
     return getStoredData('vjit_jobs', mockJobs);
 }
 
+export function getJobsPaginated(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    type: string = 'all'
+): { data: Job[]; total: number; totalPages: number } {
+    let jobs = getActiveJobs();
+
+    if (search) {
+        const lowerSearch = search.toLowerCase();
+        jobs = jobs.filter(j =>
+            j.title.toLowerCase().includes(lowerSearch) ||
+            j.company.toLowerCase().includes(lowerSearch) ||
+            j.location.toLowerCase().includes(lowerSearch)
+        );
+    }
+
+    if (type !== 'all') {
+        jobs = jobs.filter(j => j.type === type);
+    }
+
+    // Sort by newest first
+    jobs.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+
+    const total = jobs.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const data = jobs.slice(startIndex, startIndex + limit);
+
+    return { data, total, totalPages };
+}
+
 export function getActiveJobs(): Job[] {
-    return getJobs().filter(j => j.isActive);
+    return getJobs().filter(j => j.status === 'active' || (j.isActive && !j.status)); // Fallback for backward compatibility
+}
+
+export function getPendingJobs(): Job[] {
+    return getJobs().filter(j => j.status === 'pending');
 }
 
 export function getJobById(id: string): Job | undefined {
@@ -582,13 +861,14 @@ export function getJobsByAlumni(alumniId: string): Job[] {
     return getJobs().filter(j => j.postedBy === alumniId);
 }
 
-export function createJob(data: Omit<Job, 'id' | 'postedAt' | 'isActive'>): Job {
+export function createJob(data: Omit<Job, 'id' | 'postedAt' | 'isActive' | 'status'> & { status?: 'active' | 'pending' }): Job {
     const jobs = getJobs();
     const newJob: Job = {
         ...data,
         id: `job-${Date.now()}`,
         postedAt: new Date().toISOString(),
-        isActive: true
+        isActive: data.status === 'active' || !data.status, // Default to true if active or undefined (legacy logic preservation)
+        status: data.status || 'pending' // Default to pending for new system
     };
     jobs.push(newJob);
     saveData('vjit_jobs', jobs);
@@ -641,11 +921,22 @@ export function createMentorshipRequest(studentId: string, alumniId: string, mes
 }
 
 export function respondToMentorshipRequest(requestId: string, status: 'accepted' | 'rejected'): void {
+    updateMentorshipStatus(requestId, status);
+}
+
+export function getAllMentorships(): MentorshipRequest[] {
+    return getMentorshipRequests();
+}
+
+export function updateMentorshipStatus(requestId: string, status: 'pending' | 'accepted' | 'rejected'): void {
     const requests = getMentorshipRequests();
     const index = requests.findIndex(r => r.id === requestId);
     if (index !== -1) {
-        requests[index].status = status;
-        requests[index].respondedAt = new Date().toISOString();
+        requests[index] = {
+            ...requests[index],
+            status,
+            respondedAt: status !== 'pending' ? new Date().toISOString() : undefined
+        };
         saveData('vjit_mentorship', requests);
     }
 }
@@ -859,6 +1150,28 @@ export function addGalleryImage(data: Omit<GalleryImage, 'id' | 'date'>): Galler
     return newImage;
 }
 
+export function getGalleryPaginated(
+    page: number = 1,
+    limit: number = 12,
+    category: string = 'all'
+): { data: GalleryImage[]; total: number; totalPages: number } {
+    let images = getGalleryImages();
+
+    if (category !== 'all') {
+        images = images.filter(img => img.category === category);
+    }
+
+    // Sort by newest first (assuming date is YYYY-MM-DD or ISO)
+    images.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const total = images.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const data = images.slice(startIndex, startIndex + limit);
+
+    return { data, total, totalPages };
+}
+
 export function deleteGalleryImage(id: string): void {
     const images = getGalleryImages().filter(i => i.id !== id);
     saveData('vjit_gallery', images);
@@ -878,3 +1191,52 @@ export function getStatistics() {
         pendingApprovals: getPendingUsers().length
     };
 }
+
+// --- Admin / Governance Functions ---
+
+export function updateUserStatus(userId: string, status: 'approved' | 'rejected' | 'pending' | 'suspended'): void {
+    // Try to find in students
+    const students = getStudents();
+    const studentIndex = students.findIndex(s => s.id === userId);
+
+    if (studentIndex !== -1) {
+        students[studentIndex].status = status;
+        saveData('vjit_students', students);
+        return; // Exit once found and updated
+    }
+
+    // Try to find in alumni
+    const alumni = getAlumni();
+    const alumniIndex = alumni.findIndex(a => a.id === userId);
+
+    if (alumniIndex !== -1) {
+        alumni[alumniIndex].status = status;
+        saveData('vjit_alumni', alumni);
+        return; // Exit once found and updated
+    }
+
+    // If not found in either (e.g. admin or invalid ID), we log or ignore
+    console.warn(`User with ID ${userId} not found in students or alumni lists.`);
+}
+
+export function updateJobStatus(jobId: string, status: 'active' | 'closed' | 'pending' | 'rejected'): void {
+    const jobs = getJobs();
+    const updatedJobs = jobs.map(j => j.id === jobId ? { ...j, status } : j);
+    localStorage.setItem('vjit_jobs', JSON.stringify(updatedJobs));
+}
+
+export function updateEventStatus(eventId: string, status: 'upcoming' | 'past' | 'cancelled' | 'pending'): void {
+    const events = getEvents();
+    // Assuming 'status' field exists or we map it. 
+    // The Event type currently has 'date' to determine upcoming/past, but might need explicit status for moderation.
+    // Let's add an explicit 'status' field to Event type in a real app, 
+    // but for now we might mock it or just assume we are strictly filtering.
+    // Checks type definition: Event has no 'status'. 
+    // We will simulate it or if we can't change type easily, we might skip event moderation for this exact "type" constraint 
+    // OR we add it to the local storage object anyway (JS flexibility).
+    // Let's modify the local object.
+    const updatedEvents = events.map(e => e.id === eventId ? { ...e, status } : e);
+    localStorage.setItem('vjit_events', JSON.stringify(updatedEvents));
+}
+
+

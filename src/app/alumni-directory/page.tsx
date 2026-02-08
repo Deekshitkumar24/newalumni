@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import { getAlumni, initializeData } from '@/lib/data/store';
-import { Alumni } from '@/types';
+import Pagination from '@/components/ui/Pagination';
+import { RowSkeleton } from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
+import { getAlumniPaginated, initializeData } from '@/lib/data/store';
+import { Alumni, User } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const departments = [
     'All Departments',
@@ -23,76 +27,83 @@ const ITEMS_PER_PAGE = 10;
 
 export default function AlumniDirectoryPage() {
     const [alumni, setAlumni] = useState<Alumni[]>([]);
-    const [filteredAlumni, setFilteredAlumni] = useState<Alumni[]>([]);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [loading, setLoading] = useState(true);
+
     const [searchName, setSearchName] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
     const [selectedYear, setSelectedYear] = useState('All Years');
     const [currentPage, setCurrentPage] = useState(1);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     useEffect(() => {
         initializeData();
-        const approvedAlumni = getAlumni().filter(a => a.status === 'approved');
-        setAlumni(approvedAlumni);
-        setFilteredAlumni(approvedAlumni);
+        const userStr = localStorage.getItem('vjit_current_user');
+        if (userStr) {
+            setCurrentUser(JSON.parse(userStr));
+        }
     }, []);
 
     useEffect(() => {
-        let result = alumni;
-
-        // Filter by name
-        if (searchName) {
-            result = result.filter(a =>
-                a.name.toLowerCase().includes(searchName.toLowerCase())
+        setLoading(true);
+        // Simulate network delay for "Manual Quality" feel
+        const timer = setTimeout(() => {
+            const { data, total, totalPages } = getAlumniPaginated(
+                currentPage,
+                ITEMS_PER_PAGE,
+                searchName,
+                selectedDepartment,
+                selectedYear
             );
-        }
+            setAlumni(data);
+            setTotalItems(total);
+            setTotalPages(totalPages);
+            setLoading(false);
+        }, 300);
 
-        // Filter by department
-        if (selectedDepartment !== 'All Departments') {
-            result = result.filter(a => a.department === selectedDepartment);
-        }
+        return () => clearTimeout(timer);
+    }, [currentPage, searchName, selectedDepartment, selectedYear]);
 
-        // Filter by year
-        if (selectedYear !== 'All Years') {
-            result = result.filter(a => a.graduationYear === parseInt(selectedYear));
-        }
-
-        setFilteredAlumni(result);
+    // Reset page on filter change
+    const handleFilterChange = (setter: (val: string) => void, val: string) => {
+        setter(val);
         setCurrentPage(1);
-    }, [searchName, selectedDepartment, selectedYear, alumni]);
-
-    // Pagination
-    const totalPages = Math.ceil(filteredAlumni.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedAlumni = filteredAlumni.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    };
 
     return (
         <div>
             <Breadcrumb items={[{ label: 'Alumni Directory' }]} />
 
             <div className="container mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold text-[#800000] mb-6 pb-3 border-b-2 border-[#800000]">
-                    Alumni Directory
-                </h1>
+                <div className="flex justify-between items-end mb-6 pb-3 border-b-2 border-[#800000]">
+                    <h1 className="text-2xl font-bold text-[#800000]">
+                        Alumni Directory
+                    </h1>
+                    <span className="text-sm text-gray-500 font-medium">
+                        Total Alumni: {totalItems}
+                    </span>
+                </div>
 
                 {/* Filters */}
-                <div className="bg-[#f5f5f5] border border-gray-200 p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-[#fbfcff] border border-gray-200 p-6 rounded-lg shadow-sm mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Search by Name</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Search by Name</label>
                             <input
                                 type="text"
                                 value={searchName}
-                                onChange={(e) => setSearchName(e.target.value)}
-                                placeholder="Enter name..."
-                                className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                onChange={(e) => handleFilterChange(setSearchName, e.target.value)}
+                                placeholder="E.g. Rahul, Microsoft..."
+                                className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent transition-all"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Department</label>
                             <select
                                 value={selectedDepartment}
-                                onChange={(e) => setSelectedDepartment(e.target.value)}
-                                className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                onChange={(e) => handleFilterChange(setSelectedDepartment, e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent bg-white"
                             >
                                 {departments.map(dept => (
                                     <option key={dept} value={dept}>{dept}</option>
@@ -100,11 +111,11 @@ export default function AlumniDirectoryPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Graduation Year</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Graduation Year</label>
                             <select
                                 value={selectedYear}
-                                onChange={(e) => setSelectedYear(e.target.value)}
-                                className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                onChange={(e) => handleFilterChange(setSelectedYear, e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent bg-white"
                             >
                                 {years.map(year => (
                                     <option key={year} value={year}>{year}</option>
@@ -117,8 +128,9 @@ export default function AlumniDirectoryPage() {
                                     setSearchName('');
                                     setSelectedDepartment('All Departments');
                                     setSelectedYear('All Years');
+                                    setCurrentPage(1);
                                 }}
-                                className="w-full border border-[#800000] text-[#800000] px-4 py-2 hover:bg-[#800000] hover:text-white"
+                                className="w-full border border-gray-300 text-gray-600 px-4 py-2.5 rounded-md hover:bg-gray-100 hover:text-gray-900 font-medium transition-colors"
                             >
                                 Reset Filters
                             </button>
@@ -126,92 +138,113 @@ export default function AlumniDirectoryPage() {
                     </div>
                 </div>
 
-                {/* Results Count */}
-                <div className="mb-4 text-sm text-gray-600">
-                    Showing {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredAlumni.length)} of {filteredAlumni.length} alumni
-                </div>
-
                 {/* Alumni List */}
-                {paginatedAlumni.length > 0 ? (
-                    <div className="border border-gray-200">
+                {loading ? (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <RowSkeleton key={i} />
+                        ))}
+                    </div>
+                ) : alumni.length > 0 ? (
+                    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-[#800000] text-white">
-                                    <th className="text-left px-4 py-3 font-medium">Name</th>
-                                    <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Department</th>
-                                    <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Batch</th>
-                                    <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Company</th>
-                                    <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Role</th>
+                                <tr className="bg-gray-50 border-b border-gray-200">
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-700">Name / Profile</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-700 hidden md:table-cell">Details</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-700 hidden lg:table-cell">Current Pos.</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-700 text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {paginatedAlumni.map((alumnus, index) => (
+                            <tbody className="divide-y divide-gray-100">
+                                {alumni.map((alumnus) => (
                                     <tr
                                         key={alumnus.id}
-                                        className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f9f9f9]'}`}
+                                        className="hover:bg-gray-50 transition-colors group"
                                     >
-                                        <td className="px-4 py-3">
-                                            <div className="font-medium text-[#333]">{alumnus.name}</div>
-                                            <div className="text-xs text-gray-500 md:hidden">
-                                                {alumnus.department} | {alumnus.graduationYear}
+
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={alumnus.profileImage || ""} alt={alumnus.name} />
+                                                    <AvatarFallback className="bg-[#800000] text-white">
+                                                        {alumnus.name.charAt(0).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium text-gray-900 group-hover:text-[#800000] transition-colors">
+                                                        {alumnus.name}
+                                                    </div>
+                                                    {alumnus.linkedIn && (
+                                                        <a
+                                                            href={alumnus.linkedIn}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
+                                                        >
+                                                            <span>LinkedIn Profile</span>
+                                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"></path></svg>
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </div>
-                                            {alumnus.linkedIn && (
-                                                <a
-                                                    href={alumnus.linkedIn}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-xs text-blue-600 hover:underline"
-                                                >
-                                                    LinkedIn →
-                                                </a>
-                                            )}
                                         </td>
-                                        <td className="px-4 py-3 text-sm hidden md:table-cell">{alumnus.department}</td>
-                                        <td className="px-4 py-3 text-sm hidden md:table-cell">{alumnus.graduationYear}</td>
-                                        <td className="px-4 py-3 text-sm hidden lg:table-cell">{alumnus.currentCompany || '-'}</td>
-                                        <td className="px-4 py-3 text-sm hidden lg:table-cell">{alumnus.currentRole || '-'}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600 hidden md:table-cell">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-800">{alumnus.department}</span>
+                                                <span className="text-gray-500">Batch of {alumnus.graduationYear}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm hidden lg:table-cell">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-800">{alumnus.currentCompany || 'N/A'}</span>
+                                                <span className="text-gray-500">{alumnus.currentRole || 'Alumni'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <Link
+                                                href={`/alumni-directory/${alumnus.id}`}
+                                                className="text-sm font-medium text-[#800000] border border-[#800000] rounded px-3 py-1.5 hover:bg-[#800000] hover:text-white transition-all inline-block"
+                                            >
+                                                View Profile
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 ) : (
-                    <div className="text-center py-10 text-gray-500 border border-gray-200 bg-white">
-                        No alumni found matching your criteria.
-                    </div>
+                    <EmptyState
+                        icon="🔍"
+                        title="No alumni found"
+                        description="We couldn't find any alumni matching your current filters. Try adjusting your search criteria."
+                        actionLabel="Clear all filters"
+                        onAction={() => {
+                            setSearchName('');
+                            setSelectedDepartment('All Departments');
+                            setSelectedYear('All Years');
+                            setCurrentPage(1);
+                        }}
+                    />
                 )}
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="mt-6 flex justify-center items-center gap-2">
-                        <button
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                        >
-                            Previous
-                        </button>
+                {/* Reusable Pagination */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
 
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={`px-4 py-2 border ${currentPage === page
-                                        ? 'bg-[#800000] text-white border-[#800000]'
-                                        : 'border-gray-300 hover:bg-gray-100'
-                                    }`}
-                            >
-                                {page}
-                            </button>
-                        ))}
-
-                        <button
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                {/* Back to Dashboard */}
+                {currentUser && (
+                    <div className="mt-12 pt-6 border-t border-gray-200">
+                        <Link
+                            href={`/dashboard/${currentUser.role}`}
+                            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#800000] font-medium transition-colors"
                         >
-                            Next
-                        </button>
+                            <span className="text-lg">←</span> Back to Dashboard
+                        </Link>
                     </div>
                 )}
             </div>

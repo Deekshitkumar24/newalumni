@@ -55,10 +55,10 @@ export default function JobDetailPage() {
                             <div className="flex items-center gap-3">
                                 <h1 className="text-xl font-semibold">{job.title}</h1>
                                 <span className={`text-xs px-2 py-1 ${job.type === 'full-time'
-                                        ? 'bg-green-500/30 text-green-100'
-                                        : job.type === 'internship'
-                                            ? 'bg-blue-500/30 text-blue-100'
-                                            : 'bg-yellow-500/30 text-yellow-100'
+                                    ? 'bg-green-500/30 text-green-100'
+                                    : job.type === 'internship'
+                                        ? 'bg-blue-500/30 text-blue-100'
+                                        : 'bg-yellow-500/30 text-yellow-100'
                                     }`}>
                                     {job.type.replace('-', ' ').toUpperCase()}
                                 </span>
@@ -132,9 +132,9 @@ export default function JobDetailPage() {
 
                                 <Link
                                     href="/jobs"
-                                    className="border border-gray-300 px-6 py-3 hover:bg-gray-50"
+                                    className="border-2 border-gray-300 text-gray-700 font-bold px-6 py-3 hover:bg-gray-100 hover:border-gray-400 transition-colors"
                                 >
-                                    ← Back to Jobs
+                                    ← Back to All Jobs
                                 </Link>
                             </div>
                         </div>

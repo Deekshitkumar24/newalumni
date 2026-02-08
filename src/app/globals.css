@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
   /* VJIT Official Colors */
@@ -14,9 +17,38 @@
   --vjit-dark-text: #333333;
   --vjit-medium-text: #555555;
   --vjit-light-text: #777777;
-  
-  --background: #ffffff;
-  --foreground: #333333;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
 @theme inline {
@@ -30,14 +62,93 @@
   --color-navy: var(--vjit-navy);
   --color-light-gray: var(--vjit-light-gray);
   --color-gray: var(--vjit-gray);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =====================================================
+   TYPOGRAPHY SYSTEM (Golden Rules Compliant)
+   H1: 28-36px | H2: 22-28px | H3: 18-22px | Body: 14-16px
+   ===================================================== */
+
+.text-page-title {
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  /* 28-36px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--vjit-maroon);
+}
+
+.text-section-title {
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  /* 22-28px */
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1f2937;
+}
+
+.text-subsection {
+  font-size: clamp(1.125rem, 1.5vw, 1.375rem);
+  /* 18-22px */
+  font-weight: 500;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.text-body {
+  font-size: 1rem;
+  /* 16px */
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.text-body-sm {
+  font-size: 0.875rem;
+  /* 14px */
+  line-height: 1.5;
+  color: #6b7280;
 }
 
 /* Traditional Link Styles */
@@ -50,42 +161,123 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Button Styles */
+/* =====================================================
+   BUTTON SYSTEM (Golden Rules Compliant)
+   Consistent: px-6 py-3, rounded-md, font-medium
+   44px minimum tap height for accessibility
+   ===================================================== */
+
 .btn-primary {
   background-color: var(--vjit-maroon);
   color: white;
-  padding: 10px 20px;
+  padding: 0.75rem 1.5rem;
+  /* py-3 px-6 */
   border: none;
+  border-radius: 0.375rem;
+  /* rounded-md */
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875rem;
+  /* 14px */
+  font-weight: 500;
+  font-family: inherit;
+  min-height: 2.75rem;
+  /* 44px tap target */
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-primary:hover {
   background-color: var(--vjit-maroon-dark);
+  transform: translateY(-1px);
+}
+
+.btn-primary:focus {
+  outline: 2px solid var(--vjit-maroon);
+  outline-offset: 2px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {
   background-color: var(--vjit-gold);
   color: var(--vjit-dark-text);
-  padding: 10px 20px;
+  padding: 0.75rem 1.5rem;
   border: none;
+  border-radius: 0.375rem;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  min-height: 2.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-secondary:hover {
   background-color: var(--vjit-gold-light);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:focus {
+  outline: 2px solid var(--vjit-gold);
+  outline-offset: 2px;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--vjit-maroon);
+  padding: 0.75rem 1.5rem;
+  border: 1.5px solid var(--vjit-maroon);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  min-height: 2.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-outline:hover {
+  background-color: var(--vjit-maroon);
+  color: white;
+}
+
+.btn-outline:focus {
+  outline: 2px solid var(--vjit-maroon);
+  outline-offset: 2px;
 }
 
 /* Form Styles */
-input, select, textarea {
+input,
+select,
+textarea {
   border: 1px solid var(--vjit-gray);
-  padding: 8px 12px;
-  font-size: 14px;
-  font-family: Arial, Helvetica, sans-serif;
+  padding: 0.625rem 0.875rem;
+  /* slightly more generous for readability */
+  font-size: 1rem;
+  /* 16px for accessibility */
+  font-family: inherit;
+  border-radius: 0.375rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: 2px solid var(--vjit-maroon);
   outline-offset: -2px;
 }
@@ -96,7 +288,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   border: 1px solid var(--vjit-gray);
   padding: 10px;
   text-align: left;
@@ -116,44 +309,212 @@ tr:nth-child(even) {
 .card {
   background: white;
   border: 1px solid var(--vjit-gray);
-  padding: 20px;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  /* p-6 */
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 /* Section Divider */
 .section-divider {
   border-top: 1px solid var(--vjit-gray);
-  margin: 30px 0;
+  margin: 2rem 0;
+  /* my-8 */
 }
 
 /* Container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 1rem;
+  /* px-4 */
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 1.5rem;
+    /* px-6 on sm+ */
+  }
 }
 
 /* Page Title */
 .page-title {
   color: var(--vjit-maroon);
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  /* 24-32px responsive */
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--vjit-maroon);
+  line-height: 1.2;
 }
 
-/* Breadcrumb */
+/* =====================================================
+   SPACING SYSTEM (Golden Rules Compliant)
+   Section: py-16/py-20 | Card: p-6 | Gap: gap-6/gap-8
+   ===================================================== */
+
+.section-padding {
+  padding-top: 4rem;
+  /* py-16 */
+  padding-bottom: 4rem;
+}
+
+.section-padding-lg {
+  padding-top: 5rem;
+  /* py-20 */
+  padding-bottom: 5rem;
+}
+
+.section-margin {
+  margin-bottom: 4rem;
+  /* mb-16 */
+}
+
+.section-margin-lg {
+  margin-bottom: 5rem;
+  /* mb-20 */
+}
+
+/* Breadcrumb - Enhanced for accessibility */
 .breadcrumb {
   background-color: var(--vjit-light-gray);
-  padding: 10px 20px;
-  font-size: 13px;
-  margin-bottom: 20px;
+  padding: 0.75rem 1.25rem;
+  /* slightly more comfortable */
+  font-size: 0.875rem;
+  /* 14px */
+  margin-bottom: 1.5rem;
+  border-radius: 0.25rem;
 }
 
 .breadcrumb a {
   color: var(--vjit-maroon);
+  font-weight: 500;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
 }
 
 .breadcrumb span {
   color: var(--vjit-medium-text);
+}
+
+/* =====================================================
+   ACCESSIBILITY SYSTEM (Golden Rules Compliant)
+   44px minimum tap targets | Visible focus | Skip links
+   ===================================================== */
+
+/* Skip to Main Content Link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  background: var(--vjit-maroon);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  z-index: 9999;
+  font-weight: 500;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid var(--vjit-gold);
+  outline-offset: 2px;
+}
+
+/* Enhanced Focus States for All Interactive Elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--vjit-maroon);
+  outline-offset: 2px;
+}
+
+/* Minimum Tap Target Helper */
+.tap-target {
+  min-height: 2.75rem;
+  /* 44px */
+  min-width: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* High Contrast Text Helper */
+.text-high-contrast {
+  color: #1f2937;
+  /* gray-800 - passes WCAG AAA */
+}
+
+/* Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Selection Styling */
+::selection {
+  background-color: var(--vjit-maroon);
+  color: white;
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }

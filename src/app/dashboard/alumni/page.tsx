@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Alumni } from '@/types';
-import { initializeData, getJobsByAlumni, getMentorshipRequestsByAlumni } from '@/lib/data/store';
+import { initializeData, getJobsByAlumni, getMentorshipRequestsByAlumni, getAlumniById } from '@/lib/data/store';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AlumniDashboard() {
     const router = useRouter();
@@ -30,11 +31,20 @@ export default function AlumniDashboard() {
             return;
         }
 
-        setUser(currentUser);
+        // Verify with latest data from store to check for suspension/status changes
+        const freshUser = getAlumniById(currentUser.id);
+
+        if (!freshUser || freshUser.status !== 'approved') {
+            localStorage.removeItem('vjit_current_user');
+            router.push('/login?error=access_revoked');
+            return;
+        }
+
+        setUser(freshUser);
 
         // Get stats
-        const jobs = getJobsByAlumni(currentUser.id);
-        const requests = getMentorshipRequestsByAlumni(currentUser.id);
+        const jobs = getJobsByAlumni(freshUser.id);
+        const requests = getMentorshipRequestsByAlumni(freshUser.id);
 
         setStats({
             myJobs: jobs.length,
@@ -42,6 +52,11 @@ export default function AlumniDashboard() {
             acceptedMentees: requests.filter(r => r.status === 'accepted').length
         });
     }, [router]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('vjit_current_user');
+        window.location.href = '/';
+    };
 
     if (!user) {
         return (
@@ -52,109 +67,68 @@ export default function AlumniDashboard() {
     }
 
     return (
-        <div className="bg-[#f5f5f5] min-h-screen">
+        <div className="space-y-6">
             {/* Dashboard Header */}
-            <div className="bg-[#DAA520] text-[#333] py-6">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-2xl font-semibold">Alumni Dashboard</h1>
-                    <p className="mt-1">Welcome back, {user.name}</p>
+            <div>
+                <h1 className="text-3xl font-bold text-[#DAA520]">Alumni Dashboard</h1>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                    <div className="text-3xl font-bold text-[#800000]">{stats.myJobs}</div>
+                    <div className="text-gray-600 mt-1">Jobs Posted</div>
+                </div>
+                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                    <div className="text-3xl font-bold text-[#800000]">{stats.pendingRequests}</div>
+                    <div className="text-gray-600 mt-1">Pending Mentorship Requests</div>
+                </div>
+                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                    <div className="text-3xl font-bold text-[#800000]">{stats.acceptedMentees}</div>
+                    <div className="text-gray-600 mt-1">Active Mentees</div>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-8">
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white border border-gray-200 p-6">
-                        <div className="text-3xl font-bold text-[#800000]">{stats.myJobs}</div>
-                        <div className="text-gray-600 mt-1">Jobs Posted</div>
+            {/* Welcome & Context */}
+            <div className="bg-white border border-gray-200 p-8 rounded-lg shadow-sm">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back, {user.name}</h2>
+                <p className="text-gray-600">
+                    Thank you for staying connected with VJIT. You have posted <span className="font-semibold text-[#800000]">{stats.myJobs} jobs</span> and are currently mentoring <span className="font-semibold text-[#800000]">{stats.acceptedMentees} students</span>.
+                </p>
+            </div>
+
+            {/* Profile Summary */}
+            <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                <h2 className="text-lg font-semibold text-[#800000] mb-4">Profile Summary</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span className="text-gray-500">Department:</span>
+                        <span className="ml-2">{user.department}</span>
                     </div>
-                    <div className="bg-white border border-gray-200 p-6">
-                        <div className="text-3xl font-bold text-[#800000]">{stats.pendingRequests}</div>
-                        <div className="text-gray-600 mt-1">Pending Mentorship Requests</div>
+                    <div>
+                        <span className="text-gray-500">Graduation Year:</span>
+                        <span className="ml-2">{user.graduationYear}</span>
                     </div>
-                    <div className="bg-white border border-gray-200 p-6">
-                        <div className="text-3xl font-bold text-[#800000]">{stats.acceptedMentees}</div>
-                        <div className="text-gray-600 mt-1">Active Mentees</div>
+                    <div>
+                        <span className="text-gray-500">Current Company:</span>
+                        <span className="ml-2">{user.currentCompany || 'Not specified'}</span>
                     </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Link href="/dashboard/alumni/my-batch" className="bg-white border border-gray-200 p-6 hover:border-[#DAA520] transition-colors">
-                        <div className="text-2xl mb-3">👥</div>
-                        <h2 className="text-lg font-semibold text-[#800000] mb-2">My Batch Reunion</h2>
-                        <p className="text-gray-600 text-sm">Connect and chat with alumni from your graduation year.</p>
-                    </Link>
-
-                    <Link href="/dashboard/alumni/mentorship" className="bg-white border border-gray-200 p-6 hover:border-[#DAA520] transition-colors">
-                        <div className="text-2xl mb-3">🤝</div>
-                        <h2 className="text-lg font-semibold text-[#800000] mb-2">Mentorship Hub</h2>
-                        <p className="text-gray-600 text-sm">View and respond to mentorship requests from students.</p>
-                        {stats.pendingRequests > 0 && (
-                            <span className="inline-block mt-2 bg-red-100 text-red-700 text-xs px-2 py-1">
-                                {stats.pendingRequests} pending
-                            </span>
-                        )}
-                    </Link>
-
-                    <Link href="/dashboard/alumni/jobs" className="bg-white border border-gray-200 p-6 hover:border-[#DAA520] transition-colors">
-                        <div className="text-2xl mb-3">💼</div>
-                        <h2 className="text-lg font-semibold text-[#800000] mb-2">Post Jobs</h2>
-                        <p className="text-gray-600 text-sm">Share job opportunities and internships at your company.</p>
-                    </Link>
-
-                    <Link href="/events" className="bg-white border border-gray-200 p-6 hover:border-[#DAA520] transition-colors">
-                        <div className="text-2xl mb-3">📅</div>
-                        <h2 className="text-lg font-semibold text-[#800000] mb-2">Events</h2>
-                        <p className="text-gray-600 text-sm">View and register for upcoming alumni events.</p>
-                    </Link>
-
-                    <Link href="/dashboard/alumni/profile" className="bg-white border border-gray-200 p-6 hover:border-[#DAA520] transition-colors">
-                        <div className="text-2xl mb-3">👤</div>
-                        <h2 className="text-lg font-semibold text-[#800000] mb-2">My Profile</h2>
-                        <p className="text-gray-600 text-sm">View and update your professional profile.</p>
-                    </Link>
-
-                    <Link href="/messages" className="bg-white border border-gray-200 p-6 hover:border-[#DAA520] transition-colors">
-                        <div className="text-2xl mb-3">💬</div>
-                        <h2 className="text-lg font-semibold text-[#800000] mb-2">Messages</h2>
-                        <p className="text-gray-600 text-sm">Chat with batchmates and mentees.</p>
-                    </Link>
-                </div>
-
-                {/* Profile Summary */}
-                <div className="mt-8 bg-white border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#800000] mb-4">Profile Summary</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span className="text-gray-500">Department:</span>
-                            <span className="ml-2">{user.department}</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Graduation Year:</span>
-                            <span className="ml-2">{user.graduationYear}</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Current Company:</span>
-                            <span className="ml-2">{user.currentCompany || 'Not specified'}</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Current Role:</span>
-                            <span className="ml-2">{user.currentRole || 'Not specified'}</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Email:</span>
-                            <span className="ml-2">{user.email}</span>
-                        </div>
-                        {user.linkedIn && (
-                            <div>
-                                <span className="text-gray-500">LinkedIn:</span>
-                                <a href={user.linkedIn} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#800000] hover:underline">
-                                    View Profile
-                                </a>
-                            </div>
-                        )}
+                    <div>
+                        <span className="text-gray-500">Current Role:</span>
+                        <span className="ml-2">{user.currentRole || 'Not specified'}</span>
                     </div>
+                    <div>
+                        <span className="text-gray-500">Email:</span>
+                        <span className="ml-2">{user.email}</span>
+                    </div>
+                    {user.linkedIn && (
+                        <div>
+                            <span className="text-gray-500">LinkedIn:</span>
+                            <a href={user.linkedIn} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#800000] hover:underline">
+                                View Profile
+                            </a>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

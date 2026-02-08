@@ -37,7 +37,7 @@ export default function RegisterPage() {
                                 </ul>
                                 <Link
                                     href="/register/student"
-                                    className="block text-center bg-[#800000] text-white py-3 hover:bg-[#660000]"
+                                    className="block text-center bg-[#800000] !text-white font-bold py-3 hover:bg-[#660000] transition-colors rounded-sm"
                                 >
                                     Register as Student
                                 </Link>

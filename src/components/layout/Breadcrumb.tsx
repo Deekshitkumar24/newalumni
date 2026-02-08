@@ -7,27 +7,28 @@ interface BreadcrumbItem {
 
 interface BreadcrumbProps {
     items: BreadcrumbItem[];
+    className?: string;
 }
 
-export default function Breadcrumb({ items }: BreadcrumbProps) {
+export default function Breadcrumb({ items, className = "bg-[#1a1a2e] border-gray-800" }: BreadcrumbProps) {
     return (
-        <nav className="bg-[#f5f5f5] border-b border-gray-200">
-            <div className="container mx-auto px-4 py-2">
-                <ol className="flex items-center gap-2 text-sm">
+        <nav className={`w-full border-b ${className}`}>
+            <div className="container mx-auto px-4 py-3">
+                <ol className="flex items-center gap-2 text-sm text-white/80">
                     <li>
-                        <Link href="/" className="text-[#800000] hover:underline">
+                        <Link href="/" className="!text-white font-medium hover:!text-white/90 hover:underline transition-all">
                             Home
                         </Link>
                     </li>
                     {items.map((item, index) => (
                         <li key={index} className="flex items-center gap-2">
-                            <span className="text-gray-400">/</span>
+                            <span className="text-white">/</span>
                             {item.href ? (
-                                <Link href={item.href} className="text-[#800000] hover:underline">
+                                <Link href={item.href} className="!text-white font-medium hover:!text-white/90 hover:underline transition-all">
                                     {item.label}
                                 </Link>
                             ) : (
-                                <span className="text-gray-600">{item.label}</span>
+                                <span className="text-white font-normal cursor-default">{item.label}</span>
                             )}
                         </li>
                     ))}

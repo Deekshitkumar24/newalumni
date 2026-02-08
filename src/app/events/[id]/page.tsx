@@ -152,9 +152,9 @@ export default function EventDetailPage() {
 
                                 <Link
                                     href="/events"
-                                    className="border border-gray-300 px-6 py-3 hover:bg-gray-50"
+                                    className="border-2 border-gray-300 text-gray-700 font-bold px-6 py-3 hover:bg-gray-100 hover:border-gray-400 transition-colors"
                                 >
-                                    ← Back to Events
+                                    ← Back to All Events
                                 </Link>
                             </div>
                         </div>

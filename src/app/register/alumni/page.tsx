@@ -6,6 +6,14 @@ import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { registerAlumni, initializeData } from '@/lib/data/store';
 
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
 const departments = [
     'Computer Science',
     'Electronics',
@@ -86,17 +94,17 @@ export default function AlumniRegistrationPage() {
 
                 <div className="container mx-auto px-4 py-10">
                     <div className="max-w-md mx-auto text-center">
-                        <div className="bg-green-50 border border-green-200 p-8">
+                        <Alert className="bg-green-50 border-green-200 p-8 flex flex-col items-center">
                             <div className="text-4xl mb-4">✓</div>
                             <h2 className="text-xl font-semibold text-green-800 mb-4">Registration Successful!</h2>
-                            <p className="text-gray-600 mb-6">
+                            <AlertDescription className="text-gray-600 mb-6 text-center">
                                 Your registration has been submitted. An administrator will review and approve your account.
                                 You will be able to login once your account is approved.
-                            </p>
-                            <Link href="/login" className="inline-block bg-[#800000] text-white px-6 py-3 hover:bg-[#660000]">
+                            </AlertDescription>
+                            <Link href="/login" className="inline-block bg-[#1a1a2e] text-white px-6 py-3 rounded hover:bg-[#2a2a4e] transition-colors">
                                 Go to Login
                             </Link>
-                        </div>
+                        </Alert>
                     </div>
                 </div>
             </div>
@@ -109,176 +117,160 @@ export default function AlumniRegistrationPage() {
 
             <div className="container mx-auto px-4 py-10">
                 <div className="max-w-lg mx-auto">
-                    <div className="border border-gray-200 bg-white">
-                        <div className="bg-[#DAA520] text-[#333] px-6 py-4">
-                            <h1 className="text-xl font-semibold">Alumni Registration</h1>
-                        </div>
+                    <Card className="shadow-lg">
+                        <CardHeader className="bg-[#DAA520] text-[#333] rounded-t-lg py-4">
+                            <CardTitle className="text-xl font-semibold">Alumni Registration</CardTitle>
+                        </CardHeader>
 
-                        <div className="p-6">
+                        <CardContent className="pt-6">
                             {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-4 text-sm">
-                                    {error}
-                                </div>
+                                <Alert variant="destructive" className="mb-4 bg-red-50 text-red-700 border-red-200">
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
                             )}
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Full Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Full Name <span className="text-red-500">*</span></Label>
+                                    <Input
                                         type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                        className="focus-visible:ring-[#DAA520]"
                                         required
                                     />
                                 </div>
 
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email Address <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
+                                <div className="space-y-2">
+                                    <Label>Email Address <span className="text-red-500">*</span></Label>
+                                    <Input
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                        className="focus-visible:ring-[#DAA520]"
                                         required
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Password <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Password <span className="text-red-500">*</span></Label>
+                                        <Input
                                             type="password"
                                             value={formData.password}
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                            className="focus-visible:ring-[#DAA520]"
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Confirm Password <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
+                                    <div className="space-y-2">
+                                        <Label>Confirm Password <span className="text-red-500">*</span></Label>
+                                        <Input
                                             type="password"
                                             value={formData.confirmPassword}
                                             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                            className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                            className="focus-visible:ring-[#DAA520]"
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Department <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Department <span className="text-red-500">*</span></Label>
+                                        <Select
                                             value={formData.department}
-                                            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                                            className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                            required
+                                            onValueChange={(val) => setFormData({ ...formData, department: val })}
                                         >
-                                            <option value="">Select</option>
-                                            {departments.map(dept => (
-                                                <option key={dept} value={dept}>{dept}</option>
-                                            ))}
-                                        </select>
+                                            <SelectTrigger className="focus:ring-[#DAA520]">
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {departments.map(dept => (
+                                                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Graduation Year <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
+                                    <div className="space-y-2">
+                                        <Label>Graduation Year <span className="text-red-500">*</span></Label>
+                                        <Select
                                             value={formData.graduationYear}
-                                            onChange={(e) => setFormData({ ...formData, graduationYear: e.target.value })}
-                                            className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                            required
+                                            onValueChange={(val) => setFormData({ ...formData, graduationYear: val })}
                                         >
-                                            <option value="">Select</option>
-                                            {graduationYears.map(year => (
-                                                <option key={year} value={year}>{year}</option>
-                                            ))}
-                                        </select>
+                                            <SelectTrigger className="focus:ring-[#DAA520]">
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {graduationYears.map(year => (
+                                                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Current Company
-                                        </label>
-                                        <input
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Current Company</Label>
+                                        <Input
                                             type="text"
                                             value={formData.currentCompany}
                                             onChange={(e) => setFormData({ ...formData, currentCompany: e.target.value })}
-                                            className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                            className="focus-visible:ring-[#DAA520]"
                                             placeholder="e.g., Microsoft"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Current Role
-                                        </label>
-                                        <input
+                                    <div className="space-y-2">
+                                        <Label>Current Role</Label>
+                                        <Input
                                             type="text"
                                             value={formData.currentRole}
                                             onChange={(e) => setFormData({ ...formData, currentRole: e.target.value })}
-                                            className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                            className="focus-visible:ring-[#DAA520]"
                                             placeholder="e.g., Software Engineer"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        LinkedIn Profile URL
-                                    </label>
-                                    <input
+                                <div className="space-y-2">
+                                    <Label>LinkedIn Profile URL</Label>
+                                    <Input
                                         type="url"
                                         value={formData.linkedIn}
                                         onChange={(e) => setFormData({ ...formData, linkedIn: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                        className="focus-visible:ring-[#DAA520]"
                                         placeholder="https://linkedin.com/in/yourprofile"
                                     />
                                 </div>
 
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Career Journey (Optional)
-                                    </label>
-                                    <textarea
+                                <div className="space-y-2">
+                                    <Label>Career Journey (Optional)</Label>
+                                    <Textarea
                                         value={formData.careerJourney}
                                         onChange={(e) => setFormData({ ...formData, careerJourney: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                        className="focus-visible:ring-[#DAA520]"
                                         rows={3}
                                         placeholder="Brief description of your career path since graduation..."
                                     />
                                 </div>
 
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-[#DAA520] text-[#333] py-3 hover:bg-[#f0c75e] disabled:opacity-50"
+                                    className="w-full bg-[#DAA520] text-[#333] hover:bg-[#f0c75e]"
                                 >
                                     {loading ? 'Submitting...' : 'Register'}
-                                </button>
+                                </Button>
                             </form>
+                        </CardContent>
 
-                            <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm">
-                                <p className="text-gray-600">
-                                    Already have an account? <Link href="/login" className="text-[#800000] hover:underline">Login here</Link>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                        <CardFooter className="flex justify-center border-t py-4">
+                            <p className="text-gray-600 text-sm">
+                                Already have an account? <Link href="/login" className="text-[#800000] hover:underline">Login here</Link>
+                            </p>
+                        </CardFooter>
+                    </Card>
                 </div>
             </div>
         </div>

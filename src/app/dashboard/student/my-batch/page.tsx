@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Student } from '@/types';
 import { initializeData, getStudents } from '@/lib/data/store';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function StudentBatchPage() {
     const router = useRouter();
@@ -48,19 +49,8 @@ export default function StudentBatchPage() {
 
     return (
         <div className="bg-[#f5f5f5] min-h-screen">
-            {/* Header */}
-            <div className="bg-[#800000] text-white py-6">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-200 mb-2">
-                        <Link href="/dashboard/student" className="hover:text-white">Dashboard</Link>
-                        <span>/</span>
-                        <span>My Batch</span>
-                    </div>
-                    <h1 className="text-2xl font-semibold">My Batch - Class of {user.graduationYear}</h1>
-                </div>
-            </div>
-
             <div className="container mx-auto px-4 py-8">
+                <h1 className="text-3xl font-bold text-[#800000] mb-6">My Batch ({user.graduationYear})</h1>
                 <div className="bg-white border border-gray-200">
                     <div className="bg-[#800000] text-white px-6 py-4">
                         <h2 className="font-semibold">Batchmates ({batchmates.length})</h2>

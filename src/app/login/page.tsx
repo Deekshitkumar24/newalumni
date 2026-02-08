@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { authenticateUser, initializeData } from '@/lib/data/store';
 
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 export default function LoginPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -29,6 +35,9 @@ export default function LoginPage() {
         if (user) {
             // Store user in localStorage
             localStorage.setItem('vjit_current_user', JSON.stringify(user));
+
+            // Dispatch custom event to notify Header component
+            window.dispatchEvent(new CustomEvent('vjit_auth_change'));
 
             // Redirect based on role
             switch (user.role) {
@@ -56,78 +65,80 @@ export default function LoginPage() {
 
             <div className="container mx-auto px-4 py-10">
                 <div className="max-w-md mx-auto">
-                    <div className="border border-gray-200 bg-white">
-                        <div className="bg-[#800000] text-white px-6 py-4">
-                            <h1 className="text-xl font-semibold">Login to VJIT Alumni Portal</h1>
-                        </div>
+                    <Card className="w-full shadow-md">
+                        <CardHeader className="bg-[#800000] text-white rounded-t-lg py-4">
+                            <CardTitle className="text-xl font-semibold">Login to VJIT Alumni Portal</CardTitle>
+                        </CardHeader>
 
-                        <div className="p-6">
+                        <CardContent className="pt-6">
                             {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-4 text-sm">
-                                    {error}
-                                </div>
+                                <Alert variant="destructive" className="mb-4 bg-red-50 text-red-700 border-red-200">
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
                             )}
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email Address
-                                    </label>
-                                    <input
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email Address</Label>
+                                    <Input
+                                        id="email"
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
+                                        placeholder="yourname@vjit.ac.in"
                                         required
+                                        className="focus-visible:ring-[#800000]"
                                     />
                                 </div>
 
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Password
-                                    </label>
-                                    <input
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Input
+                                        id="password"
                                         type="password"
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
                                         required
+                                        className="focus-visible:ring-[#800000]"
                                     />
                                 </div>
 
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-[#800000] text-white py-3 hover:bg-[#660000] disabled:opacity-50"
+                                    className="w-full bg-[#800000] hover:bg-[#660000] text-white"
                                 >
                                     {loading ? 'Logging in...' : 'Login'}
-                                </button>
+                                </Button>
                             </form>
+                        </CardContent>
 
-                            <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm">
-                                <p className="text-gray-600 mb-3">
+                        <CardFooter className="flex flex-col gap-4 border-t pt-6">
+                            <div className="text-center text-sm w-full">
+                                <p className="text-gray-600 mb-2">
                                     Don&apos;t have an account?
                                 </p>
                                 <Link href="/register" className="text-[#800000] hover:underline font-medium">
                                     Register as Student or Alumni
                                 </Link>
                             </div>
-
-                            <div className="mt-4 text-center text-xs text-gray-500">
+                            <div className="text-center text-xs text-gray-500 w-full">
                                 <p>Note: New registrations require admin approval.</p>
                             </div>
-                        </div>
-                    </div>
+                        </CardFooter>
+                    </Card>
 
                     {/* Demo Credentials */}
-                    <div className="mt-6 p-4 bg-[#f5f5f5] border border-gray-200 text-sm">
-                        <h3 className="font-semibold text-[#800000] mb-2">Demo Credentials</h3>
-                        <div className="space-y-2 text-gray-600">
-                            <p><strong>Admin:</strong> admin@vjit.ac.in / admin123</p>
-                            <p><strong>Alumni:</strong> sanjay.patel@gmail.com / password123</p>
-                            <p><strong>Student:</strong> rahul.kumar@vjit.ac.in / password123</p>
-                        </div>
-                    </div>
+                    <Card className="mt-6 bg-[#f5f5f5] text-sm">
+                        <CardContent className="pt-6">
+                            <h3 className="font-semibold text-[#800000] mb-2">Demo Credentials</h3>
+                            <div className="space-y-2 text-gray-600">
+                                <p><strong>Admin:</strong> admin@vjit.ac.in / admin123</p>
+                                <p><strong>Alumni:</strong> sanjay.patel@gmail.com / password123</p>
+                                <p><strong>Student:</strong> rahul.kumar@vjit.ac.in / password123</p>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>

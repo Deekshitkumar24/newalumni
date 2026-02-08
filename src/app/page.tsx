@@ -46,10 +46,14 @@ export default function HomePage() {
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
 
-                {/* Image Placeholder */}
-                <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-                  <span className="text-gray-600 font-mono text-sm tracking-widest uppercase">Display Image: {slide.imageUrl}</span>
-                </div>
+                {/* Background Image */}
+                <Image
+                  src={slide.imageUrl}
+                  alt={slide.title}
+                  fill
+                  className="object-cover"
+                  priority={index === 0}
+                />
 
                 <div className="absolute inset-0 z-20 container mx-auto px-4 flex flex-col justify-center">
                   <div className="max-w-2xl animate-fadeInUp">
@@ -130,11 +134,17 @@ export default function HomePage() {
             <div className="absolute -inset-4 bg-[#DAA520]/10 rounded-lg transform rotate-2"></div>
             <div className="relative bg-white p-2 shadow-xl rounded-lg transform -rotate-1">
               {/* Placeholder for Video or Image */}
-              <div className="aspect-video bg-gray-200 rounded flex items-center justify-center relative overflow-hidden group cursor-pointer">
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <span className="text-[#DAA520] text-3xl ml-1">▶</span>
-                </div>
+              <div className="aspect-video bg-gray-200 rounded flex items-center justify-center relative overflow-hidden group shadow-lg">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/EPBN8Ol3fws"
+                  title="VJIT Alumni Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full rounded"
+                ></iframe>
               </div>
               <div className="p-4 text-center">
                 <p className="font-serif italic text-gray-500">"Alumni are the true ambassadors of VJIT."</p>

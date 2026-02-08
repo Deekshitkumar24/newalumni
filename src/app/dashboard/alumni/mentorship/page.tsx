@@ -103,7 +103,7 @@ export default function AlumniMentorshipPage() {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleRespond(request.id, 'accepted')}
-                                                    className="bg-green-600 text-white px-4 py-2 text-sm hover:bg-green-700"
+                                                    className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000]"
                                                 >
                                                     Accept
                                                 </button>
@@ -145,8 +145,8 @@ export default function AlumniMentorshipPage() {
                                             </div>
                                         </div>
                                         <div className={`text-sm px-3 py-1 ${request.status === 'accepted'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
                                             }`}>
                                             {request.status === 'accepted' ? 'Accepted' : 'Declined'}
                                         </div>

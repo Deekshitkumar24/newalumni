@@ -56,25 +56,15 @@ export default function AdminGalleryPage() {
     };
 
     return (
-        <div className="bg-[#f5f5f5] min-h-screen">
-            {/* Header */}
-            <div className="bg-[#1a1a2e] text-white py-6">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
-                        <Link href="/dashboard/admin" className="hover:text-white">Dashboard</Link>
-                        <span>/</span>
-                        <span>Gallery Management</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-2xl font-semibold">Gallery Management</h1>
-                        <button
-                            onClick={() => setShowForm(true)}
-                            className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000]"
-                        >
-                            + Add Photo
-                        </button>
-                    </div>
-                </div>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-[#1a1a2e]">Gallery Management</h1>
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000] rounded"
+                >
+                    + Add Photo
+                </button>
             </div>
 
             <div className="container mx-auto px-4 py-8">

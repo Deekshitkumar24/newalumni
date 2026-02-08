@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   keywords: "VJIT, Alumni, Hyderabad, Engineering",
 };
 
+import { Toaster } from "@/components/ui/sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,6 +27,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );

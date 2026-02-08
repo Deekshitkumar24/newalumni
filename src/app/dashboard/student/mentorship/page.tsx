@@ -5,12 +5,25 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Alumni, Student, MentorshipRequest } from '@/types';
 import { initializeData, getAlumni, getMentorshipRequestsByStudent, createMentorshipRequest } from '@/lib/data/store';
+import { toast } from 'sonner';
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/Skeleton"
+
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function StudentMentorshipPage() {
     const router = useRouter();
     const [user, setUser] = useState<Student | null>(null);
     const [alumni, setAlumni] = useState<Alumni[]>([]);
     const [myRequests, setMyRequests] = useState<MentorshipRequest[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [selectedAlumni, setSelectedAlumni] = useState<Alumni | null>(null);
     const [message, setMessage] = useState('');
@@ -30,9 +43,13 @@ export default function StudentMentorshipPage() {
             return;
         }
 
-        setUser(currentUser);
-        setAlumni(getAlumni().filter(a => a.status === 'approved'));
-        setMyRequests(getMentorshipRequestsByStudent(currentUser.id));
+        // Simulate network delay
+        setTimeout(() => {
+            setUser(currentUser);
+            setAlumni(getAlumni().filter(a => a.status === 'approved'));
+            setMyRequests(getMentorshipRequestsByStudent(currentUser.id));
+            setLoading(false);
+        }, 500);
     }, [router]);
 
     const getRequestStatus = (alumniId: string) => {
@@ -48,160 +65,170 @@ export default function StudentMentorshipPage() {
         setShowRequestModal(false);
         setSelectedAlumni(null);
         setMessage('');
+        toast.success(`Request sent to ${selectedAlumni.name}!`);
     };
 
-    if (!user) {
+    const openRequestModal = (alumnus: Alumni) => {
+        setSelectedAlumni(alumnus);
+        setShowRequestModal(true);
+    };
+
+    if (loading) {
         return (
-            <div className="container mx-auto px-4 py-10 text-center">
-                <p>Loading...</p>
+            <div className="bg-gray-50 min-h-screen">
+                <div className="bg-[#800000] h-32 w-full animate-pulse"></div>
+                <div className="container mx-auto px-4 -mt-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-48 w-full rounded-lg" />)}
+                    </div>
+                </div>
             </div>
-        );
+        )
     }
 
+    if (!user) return null;
+
     return (
-        <div className="bg-[#f5f5f5] min-h-screen">
+        <div className="bg-gray-50 min-h-screen">
+            <Breadcrumb items={[{ label: 'Dashboard', href: '/dashboard/student' }, { label: 'Find Mentors' }]} />
+
             {/* Header */}
             <div className="bg-[#800000] text-white py-6">
                 <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-200 mb-2">
-                        <Link href="/dashboard/student" className="hover:text-white">Dashboard</Link>
-                        <span>/</span>
-                        <span>Find Mentors</span>
-                    </div>
-                    <h1 className="text-2xl font-semibold">Find Mentors</h1>
+                    <h1 className="text-3xl font-bold">Find Mentors</h1>
                 </div>
             </div>
 
             <div className="container mx-auto px-4 py-8">
-                {/* My Requests */}
+                {/* My Requests Section */}
                 {myRequests.length > 0 && (
-                    <div className="bg-white border border-gray-200 p-6 mb-8">
-                        <h2 className="text-lg font-semibold text-[#800000] mb-4">My Mentorship Requests</h2>
-                        <div className="space-y-3">
-                            {myRequests.map(request => {
-                                const alumnus = alumni.find(a => a.id === request.alumniId);
-                                return (
-                                    <div key={request.id} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0">
-                                        <div>
-                                            <div className="font-medium">{alumnus?.name || 'Unknown'}</div>
-                                            <div className="text-sm text-gray-500">{alumnus?.currentCompany} | {alumnus?.currentRole}</div>
-                                        </div>
-                                        <div className={`text-sm px-3 py-1 ${request.status === 'accepted'
-                                                ? 'bg-green-100 text-green-700'
-                                                : request.status === 'rejected'
-                                                    ? 'bg-red-100 text-red-700'
-                                                    : 'bg-yellow-100 text-yellow-700'
-                                            }`}>
-                                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {/* Available Mentors */}
-                <div className="bg-white border border-gray-200">
-                    <div className="bg-[#800000] text-white px-6 py-4">
-                        <h2 className="font-semibold">Available Mentors</h2>
-                    </div>
-                    <div className="p-6">
-                        {alumni.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {alumni.map(alumnus => {
-                                    const status = getRequestStatus(alumnus.id);
+                    <Card className="mb-8 border-gray-200 shadow-sm">
+                        <CardHeader className="pb-3 border-b border-gray-100">
+                            <CardTitle className="text-lg font-semibold text-[#800000]">My Mentorship Requests</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            <div className="space-y-3">
+                                {myRequests.map(request => {
+                                    const alumnus = alumni.find(a => a.id === request.alumniId);
                                     return (
-                                        <div key={alumnus.id} className="border border-gray-200 p-4">
-                                            <div className="font-medium text-[#800000]">{alumnus.name}</div>
-                                            <div className="text-sm text-gray-600">Class of {alumnus.graduationYear} | {alumnus.department}</div>
-                                            {alumnus.currentCompany && (
-                                                <div className="text-sm text-gray-500 mt-1">
-                                                    {alumnus.currentRole} at {alumnus.currentCompany}
-                                                </div>
-                                            )}
-                                            <div className="mt-3">
-                                                {status === 'accepted' ? (
-                                                    <span className="text-sm text-green-600">✓ Connected</span>
-                                                ) : status === 'pending' ? (
-                                                    <span className="text-sm text-yellow-600">⏳ Request Pending</span>
-                                                ) : status === 'rejected' ? (
-                                                    <span className="text-sm text-red-600">Request Declined</span>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedAlumni(alumnus);
-                                                            setShowRequestModal(true);
-                                                        }}
-                                                        className="text-sm bg-[#800000] text-white px-4 py-2 hover:bg-[#660000]"
-                                                    >
-                                                        Request Mentorship
-                                                    </button>
-                                                )}
+                                        <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <div>
+                                                <div className="font-medium text-gray-900">{alumnus?.name || 'Unknown'}</div>
+                                                <div className="text-sm text-gray-500">{alumnus?.currentCompany} | {alumnus?.currentRole}</div>
                                             </div>
+                                            <Badge variant={request.status === 'accepted' ? 'default' : request.status === 'rejected' ? 'destructive' : 'secondary'}
+                                                className={`${request.status === 'accepted' ? 'bg-green-600' : request.status === 'pending' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : ''}`}
+                                            >
+                                                {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                                            </Badge>
                                         </div>
                                     );
                                 })}
                             </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Available Mentors Section */}
+                <Card className="border-gray-200 shadow-sm">
+                    <CardHeader className="bg-[#800000] text-white rounded-t-lg py-4">
+                        <CardTitle className="text-lg font-semibold">Available Mentors</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        {alumni.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {alumni.map(alumnus => {
+                                    const status = getRequestStatus(alumnus.id);
+                                    return (
+                                        <Card key={alumnus.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                                            <CardContent className="p-5">
+                                                <div className="mb-3">
+                                                    <h3 className="text-lg font-bold text-[#800000] mb-1">{alumnus.name}</h3>
+                                                    <div className="text-sm text-gray-600 mb-2">Class of {alumnus.graduationYear} • {alumnus.department}</div>
+                                                    {alumnus.currentCompany && (
+                                                        <div className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded font-medium">
+                                                            {alumnus.currentRole} @ {alumnus.currentCompany}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="mt-4">
+                                                    {status === 'accepted' ? (
+                                                        <Button variant="outline" className="w-full text-green-600 border-green-200 hover:bg-green-50 pointer-events-none">
+                                                            ✓ Connected
+                                                        </Button>
+                                                    ) : status === 'pending' ? (
+                                                        <Button variant="outline" className="w-full text-yellow-600 border-yellow-200 hover:bg-yellow-50 pointer-events-none">
+                                                            ⏳ Request Pending
+                                                        </Button>
+                                                    ) : status === 'rejected' ? (
+                                                        <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50 pointer-events-none">
+                                                            Request Declined
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={() => openRequestModal(alumnus)}
+                                                            className="w-full bg-[#800000] hover:bg-[#660000] text-white"
+                                                        >
+                                                            Request Mentorship
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
                         ) : (
-                            <p className="text-gray-500">No mentors available at this time.</p>
+                            <div className="text-center py-10 text-gray-500">
+                                <p>No mentors available at this time.</p>
+                            </div>
                         )}
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 <div className="mt-6">
-                    <Link href="/dashboard/student" className="text-[#800000] hover:underline">
+                    <Link href="/dashboard/student" className="text-[#800000] hover:underline flex items-center gap-2 font-medium">
                         ← Back to Dashboard
                     </Link>
                 </div>
             </div>
 
-            {/* Request Modal */}
-            {showRequestModal && selectedAlumni && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white w-full max-w-md mx-4">
-                        <div className="bg-[#800000] text-white px-6 py-4">
-                            <h3 className="font-semibold">Request Mentorship</h3>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-gray-600 mb-4">
-                                Send a mentorship request to <strong>{selectedAlumni.name}</strong>
-                            </p>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Message <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    rows={4}
-                                    placeholder="Introduce yourself and explain why you'd like this person as your mentor..."
-                                />
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={handleSendRequest}
-                                    disabled={!message.trim()}
-                                    className="flex-1 bg-[#800000] text-white py-2 hover:bg-[#660000] disabled:opacity-50"
-                                >
-                                    Send Request
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setShowRequestModal(false);
-                                        setSelectedAlumni(null);
-                                        setMessage('');
-                                    }}
-                                    className="flex-1 border border-gray-300 py-2 hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
+            {/* Request Dialog */}
+            <Dialog open={showRequestModal} onOpenChange={setShowRequestModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-[#800000]">Request Mentorship</DialogTitle>
+                        <DialogDescription>
+                            Send a mentorship request to <span className="font-semibold text-gray-900">{selectedAlumni?.name}</span>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="message">Message</Label>
+                            <Textarea
+                                id="message"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Introduce yourself and explain why you'd like this person as your mentor..."
+                                rows={5}
+                            />
                         </div>
                     </div>
-                </div>
-            )}
+                    <DialogFooter className="flex gap-2 sm:justify-end">
+                        <Button variant="outline" onClick={() => { setShowRequestModal(false); setMessage(''); }}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSendRequest}
+                            disabled={!message.trim()}
+                            className="bg-[#800000] hover:bg-[#660000]"
+                        >
+                            Send Request
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

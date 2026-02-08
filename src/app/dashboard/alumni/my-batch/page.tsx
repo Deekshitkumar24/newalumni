@@ -47,18 +47,8 @@ export default function AlumniBatchPage() {
     }
 
     return (
-        <div className="bg-[#f5f5f5] min-h-screen">
-            {/* Header */}
-            <div className="bg-[#DAA520] text-[#333] py-6">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm mb-2">
-                        <Link href="/dashboard/alumni" className="hover:underline">Dashboard</Link>
-                        <span>/</span>
-                        <span>My Batch</span>
-                    </div>
-                    <h1 className="text-2xl font-semibold">My Batch - Class of {user.graduationYear}</h1>
-                </div>
-            </div>
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold text-[#DAA520] mb-6">My Batch ({user.graduationYear})</h1>
 
             <div className="container mx-auto px-4 py-8">
                 <div className="bg-white border border-gray-200">
@@ -92,7 +82,7 @@ export default function AlumniBatchPage() {
                                     <div className="flex gap-2">
                                         <Link
                                             href={`/messages?to=${alumnus.id}`}
-                                            className="text-sm bg-[#800000] text-white px-4 py-2 hover:bg-[#660000]"
+                                            className="text-sm bg-[#800000] !text-white px-4 py-2 hover:bg-[#660000] rounded transition-colors"
                                         >
                                             Message
                                         </Link>

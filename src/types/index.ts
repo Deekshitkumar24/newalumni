@@ -1,6 +1,6 @@
 // User Types
 export type UserRole = 'student' | 'alumni' | 'admin';
-export type UserStatus = 'pending' | 'approved' | 'rejected';
+export type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 
 export interface User {
   id: string;
@@ -11,6 +11,8 @@ export interface User {
   status: UserStatus;
   createdAt: string;
   profileImage?: string;
+  avatar?: string;
+  department?: string;
 }
 
 export interface Student extends User {
@@ -30,6 +32,7 @@ export interface Alumni extends User {
   currentRole?: string;
   linkedIn?: string;
   careerJourney?: string;
+  imageUrl?: string;
 }
 
 export interface Admin extends User {
@@ -45,7 +48,9 @@ export interface Event {
   time: string;
   venue: string;
   posterImage?: string;
+  link?: string;
   eventType: 'upcoming' | 'past';
+  status: 'upcoming' | 'past' | 'cancelled' | 'pending'; // Combined status for lifecycle and moderation
   registrations: string[]; // User IDs
   createdBy: string;
   createdAt: string;
@@ -65,6 +70,7 @@ export interface Job {
   postedByName: string;
   postedAt: string;
   isActive: boolean;
+  status: 'active' | 'closed' | 'pending' | 'rejected';
 }
 
 // Mentorship Types

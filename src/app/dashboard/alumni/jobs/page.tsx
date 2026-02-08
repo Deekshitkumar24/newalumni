@@ -6,6 +6,22 @@ import Link from 'next/link';
 import { Alumni, Job } from '@/types';
 import { initializeData, getJobsByAlumni, createJob, deleteJob } from '@/lib/data/store';
 
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+import Breadcrumb from '@/components/layout/Breadcrumb';
+
 export default function AlumniJobsPage() {
     const router = useRouter();
     const [user, setUser] = useState<Alumni | null>(null);
@@ -86,148 +102,120 @@ export default function AlumniJobsPage() {
 
     return (
         <div className="bg-[#f5f5f5] min-h-screen">
+            <Breadcrumb items={[{ label: 'Dashboard', href: '/dashboard/alumni' }, { label: 'Post Jobs' }]} />
+
             {/* Header */}
             <div className="bg-[#DAA520] text-[#333] py-6">
                 <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm mb-2">
-                        <Link href="/dashboard/alumni" className="hover:underline">Dashboard</Link>
-                        <span>/</span>
-                        <span>Post Jobs</span>
-                    </div>
                     <div className="flex justify-between items-center">
-                        <h1 className="text-2xl font-semibold">My Job Postings</h1>
-                        <button
-                            onClick={() => setShowForm(true)}
-                            className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000]"
-                        >
-                            + Post New Job
-                        </button>
+                        <h1 className="text-3xl font-bold">My Job Postings</h1>
+
+                        <Dialog open={showForm} onOpenChange={setShowForm}>
+                            <DialogTrigger asChild>
+                                <Button className="bg-[#800000] text-white hover:bg-[#660000]">
+                                    + Post New Job
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>Post New Job</DialogTitle>
+                                    <DialogDescription>
+                                        Share a job opportunity with fellow alumni and students.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Job Title <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                required
+                                                value={formData.title}
+                                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Company</Label>
+                                            <Input
+                                                value={formData.company}
+                                                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                                                placeholder={user.currentCompany || 'Enter company name'}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Location <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                required
+                                                value={formData.location}
+                                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Job Type <span className="text-red-500">*</span></Label>
+                                            <Select
+                                                value={formData.type}
+                                                onValueChange={(val: any) => setFormData({ ...formData, type: val })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="full-time">Full-Time</SelectItem>
+                                                    <SelectItem value="part-time">Part-Time</SelectItem>
+                                                    <SelectItem value="internship">Internship</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Job Description <span className="text-red-500">*</span></Label>
+                                        <Textarea
+                                            required
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            rows={4}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Requirements (one per line)</Label>
+                                        <Textarea
+                                            value={formData.requirements}
+                                            onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                                            rows={3}
+                                            placeholder="B.Tech in CS/IT&#10;2+ years experience&#10;Strong programming skills"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Application Link</Label>
+                                        <Input
+                                            type="url"
+                                            value={formData.applicationLink}
+                                            onChange={(e) => setFormData({ ...formData, applicationLink: e.target.value })}
+                                            placeholder="https://careers.company.com/apply"
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-3 justify-end pt-4">
+                                        <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" className="bg-[#800000] hover:bg-[#660000]">
+                                            Post Job
+                                        </Button>
+                                    </div>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
             </div>
 
             <div className="container mx-auto px-4 py-8">
-                {/* Job Posting Form */}
-                {showForm && (
-                    <div className="bg-white border border-gray-200 mb-8">
-                        <div className="bg-[#800000] text-white px-6 py-4">
-                            <h2 className="font-semibold">Post New Job</h2>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Job Title <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Company
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.company}
-                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                        placeholder={user.currentCompany || 'Enter company name'}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Location <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.location}
-                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Job Type <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={formData.type}
-                                        onChange={(e) => setFormData({ ...formData, type: e.target.value as never })}
-                                        className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    >
-                                        <option value="full-time">Full-Time</option>
-                                        <option value="part-time">Part-Time</option>
-                                        <option value="internship">Internship</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Job Description <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    rows={4}
-                                    required
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Requirements (one per line)
-                                </label>
-                                <textarea
-                                    value={formData.requirements}
-                                    onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    rows={3}
-                                    placeholder="B.Tech in CS/IT&#10;2+ years experience&#10;Strong programming skills"
-                                />
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Application Link
-                                </label>
-                                <input
-                                    type="url"
-                                    value={formData.applicationLink}
-                                    onChange={(e) => setFormData({ ...formData, applicationLink: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    placeholder="https://careers.company.com/apply"
-                                />
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    type="submit"
-                                    className="bg-[#800000] text-white px-6 py-2 hover:bg-[#660000]"
-                                >
-                                    Post Job
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowForm(false)}
-                                    className="border border-gray-300 px-6 py-2 hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
-
                 {/* My Jobs List */}
                 <div className="bg-white border border-gray-200">
                     <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
@@ -243,10 +231,10 @@ export default function AlumniJobsPage() {
                                             <div className="flex items-center gap-3 mb-1">
                                                 <span className="font-medium text-[#800000]">{job.title}</span>
                                                 <span className={`text-xs px-2 py-1 ${job.type === 'full-time'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : job.type === 'internship'
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : 'bg-yellow-100 text-yellow-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : job.type === 'internship'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-yellow-100 text-yellow-700'
                                                     }`}>
                                                     {job.type.replace('-', ' ').toUpperCase()}
                                                 </span>
