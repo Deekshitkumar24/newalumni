@@ -5,6 +5,20 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { GalleryImage } from '@/types';
 import { initializeData, getGalleryImages, addGalleryImage, deleteGalleryImage } from '@/lib/data/store';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 export default function AdminGalleryPage() {
     const router = useRouter();
@@ -59,12 +73,72 @@ export default function AdminGalleryPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-[#1a1a2e]">Gallery Management</h1>
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000] rounded"
-                >
-                    + Add Photo
-                </button>
+                <Dialog open={showForm} onOpenChange={setShowForm}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-[#800000] text-white hover:bg-[#660000]">
+                            + Add Photo
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                        <DialogHeader>
+                            <DialogTitle>Add New Photo</DialogTitle>
+                            <DialogDescription>
+                                Add a photo to the alumni gallery.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="title">Title/Caption <span className="text-red-500">*</span></Label>
+                                <Input
+                                    id="title"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    placeholder="e.g., Alumni Meet 2024 Group Photo"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="category">Category</Label>
+                                <Select
+                                    value={formData.category}
+                                    onValueChange={(val) => setFormData({ ...formData, category: val as any })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="events">Events</SelectItem>
+                                        <SelectItem value="campus">Campus</SelectItem>
+                                        <SelectItem value="reunion">Reunion</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="imageUrl">Image URL <span className="text-red-500">*</span></Label>
+                                <Input
+                                    id="imageUrl"
+                                    type="url"
+                                    value={formData.imageUrl}
+                                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                                    placeholder="https://example.com/photo.jpg"
+                                    required
+                                />
+                            </div>
+
+                            <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                                    Cancel
+                                </Button>
+                                <Button type="submit" className="bg-[#800000] hover:bg-[#660000] text-white">
+                                    Add Photo
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <div className="container mx-auto px-4 py-8">
@@ -72,76 +146,6 @@ export default function AdminGalleryPage() {
                 <div className="bg-blue-50 border border-blue-200 p-4 mb-6 text-sm text-blue-800">
                     <strong>Note:</strong> Since actual file upload requires backend storage, please provide direct image URLs (e.g., from Unsplash or other hosting) for this demo.
                 </div>
-
-                {/* Add Form */}
-                {showForm && (
-                    <div className="bg-white border border-gray-200 mb-8 max-w-2xl">
-                        <div className="bg-[#800000] text-white px-6 py-4">
-                            <h2 className="font-semibold">Add New Photo</h2>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6">
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Title/Caption <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    placeholder="e.g., Alumni Meet 2024 Group Photo"
-                                    required
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category
-                                </label>
-                                <select
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                >
-                                    <option value="events">Events</option>
-                                    <option value="campus">Campus</option>
-                                    <option value="reunion">Reunion</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Image URL <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="url"
-                                    value={formData.imageUrl}
-                                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    placeholder="https://example.com/photo.jpg"
-                                    required
-                                />
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    type="submit"
-                                    className="bg-[#800000] text-white px-6 py-2 hover:bg-[#660000]"
-                                >
-                                    Add Photo
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowForm(false)}
-                                    className="border border-gray-300 px-6 py-2 hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
 
                 {/* Gallery Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -179,11 +183,7 @@ export default function AdminGalleryPage() {
                     )}
                 </div>
 
-                <div className="mt-6">
-                    <Link href="/dashboard/admin" className="text-[#800000] hover:underline">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
         </div>
     );

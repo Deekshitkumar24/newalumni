@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { getEventsPaginated, initializeData } from '@/lib/data/store';
 import { Event, User } from '@/types';
+import { Clock, MapPin } from 'lucide-react';
+
 
 const ITEMS_PER_PAGE = 6;
 
@@ -118,11 +119,11 @@ export default function DashboardEventsPage() {
                                                         </h2>
                                                     </Link>
                                                     <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
-                                                        <span className="flex items-center gap-1">
-                                                            🕒 {event.time}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Clock size={16} className="text-gray-400" /> {event.time}
                                                         </span>
-                                                        <span className="flex items-center gap-1">
-                                                            📍 {event.venue}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <MapPin size={16} className="text-gray-400" /> {event.venue}
                                                         </span>
                                                     </div>
                                                     <p className="text-gray-600 line-clamp-2 mb-4">

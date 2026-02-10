@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { getEventsPaginated, initializeData } from '@/lib/data/store';
 import { Event, User } from '@/types';
+import { Clock, MapPin } from 'lucide-react';
+
 
 const ITEMS_PER_PAGE = 6; // Grid layout usually looks better with 6 or 9
 
@@ -52,8 +53,6 @@ export default function EventsPage() {
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            <Breadcrumb items={[{ label: 'Events' }]} />
-
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-8 pb-4 border-b-2 border-[#800000]">
                     <div>
@@ -119,11 +118,11 @@ export default function EventsPage() {
                                                         </h2>
                                                     </Link>
                                                     <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
-                                                        <span className="flex items-center gap-1">
-                                                            🕒 {event.time}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Clock size={16} className="text-gray-400" /> {event.time}
                                                         </span>
-                                                        <span className="flex items-center gap-1">
-                                                            📍 {event.venue}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <MapPin size={16} className="text-gray-400" /> {event.venue}
                                                         </span>
                                                     </div>
                                                     <p className="text-gray-600 line-clamp-2 mb-4">
@@ -189,17 +188,7 @@ export default function EventsPage() {
                     onPageChange={setCurrentPage}
                 />
 
-                {/* Back to Dashboard */}
-                {currentUser && (
-                    <div className="mt-10 pt-6 border-t border-gray-200">
-                        <Link
-                            href={`/dashboard/${currentUser.role}`}
-                            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#800000] font-medium transition-colors"
-                        >
-                            <span className="text-lg">←</span> Back to Dashboard
-                        </Link>
-                    </div>
-                )}
+
             </div>
         </div>
     );

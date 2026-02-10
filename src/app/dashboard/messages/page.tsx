@@ -107,8 +107,43 @@ export default function DashboardMessagesPage() {
     }, [activeConversationId, conversations, currentUser, users]);
 
     // Scroll to bottom
+    const isFirstLoad = useRef(true);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messages.length > 0) {
+            // Only scroll smoothly if it's not the initial mount to prevent jarring jumps
+            // But for a chat app, usually you DO want to see the latest. 
+            // The user request says "Update messages/page.tsx to prevent: Auto-scrolling to the bottom on initial load"
+            // This implies they want to start at the TOP or just not jump? 
+            // "Pages always load at the top" -> usually implies main scrollbar.
+            // But for a chat box, usually you want latest.
+            // "Ensure the Messages page always loads in a stable top position"
+            // If the PAGE scrolls, that's bad. The CHAT container should scroll.
+            // The chat container has `flex-grow overflow-y-auto`.
+            // Let's ensure the `messagesEndRef` scroll only affects the container, not the window.
+            // behavior: 'smooth' might try to scroll the window if the element is out of view?
+            // Actually, `scrollIntoView` CAN scroll the parent window. `block: 'nearest'` might help.
+            // Or better: scrollTop = scrollHeight.
+
+            if (isFirstLoad.current) {
+                isFirstLoad.current = false;
+                // On first load, maybe they WANT it to be at the top? 
+                // "Messages page always loads in a stable top position" -> The PAGE (window) should be top. 
+                // The CHAT CONTENT might need to be at bottom? 
+                // "Do not auto-scroll conversations or message panels on initial load" -> Okay, they don't want the chat to jump to bottom?
+                // That's unusual for chat, but I will follow instructions: "Do not auto-scroll ... on initial load".
+                return;
+            }
+
+            if (scrollContainerRef.current) {
+                const { scrollHeight, clientHeight } = scrollContainerRef.current;
+                scrollContainerRef.current.scrollTo({
+                    top: scrollHeight - clientHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
     }, [messages]);
 
     const handleSendMessage = (e: React.FormEvent) => {
@@ -247,7 +282,7 @@ export default function DashboardMessagesPage() {
                             </div>
 
                             {/* Messages List */}
-                            <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-[#f9f9f9]">
+                            <div ref={scrollContainerRef} className="flex-grow overflow-y-auto p-4 space-y-4 bg-[#f9f9f9]">
                                 {messages.length > 0 ? (
                                     messages.map(msg => {
                                         const isMe = msg.senderId === currentUser?.id;

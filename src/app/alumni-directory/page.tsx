@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import Pagination from '@/components/ui/Pagination';
 import { RowSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { getAlumniPaginated, initializeData } from '@/lib/data/store';
 import { Alumni, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 
 const departments = [
     'All Departments',
@@ -73,8 +74,6 @@ export default function AlumniDirectoryPage() {
 
     return (
         <div>
-            <Breadcrumb items={[{ label: 'Alumni Directory' }]} />
-
             <div className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-end mb-6 pb-3 border-b-2 border-[#800000]">
                     <h1 className="text-2xl font-bold text-[#800000]">
@@ -90,13 +89,16 @@ export default function AlumniDirectoryPage() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Search by Name</label>
-                            <input
-                                type="text"
-                                value={searchName}
-                                onChange={(e) => handleFilterChange(setSearchName, e.target.value)}
-                                placeholder="E.g. Rahul, Microsoft..."
-                                className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent transition-all"
-                            />
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                <Input
+                                    type="text"
+                                    value={searchName}
+                                    onChange={(e) => handleFilterChange(setSearchName, e.target.value)}
+                                    placeholder="E.g. Rahul, Microsoft..."
+                                    className="pl-10 focus-visible:ring-[#800000]"
+                                />
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Department</label>
@@ -236,17 +238,7 @@ export default function AlumniDirectoryPage() {
                     onPageChange={setCurrentPage}
                 />
 
-                {/* Back to Dashboard */}
-                {currentUser && (
-                    <div className="mt-12 pt-6 border-t border-gray-200">
-                        <Link
-                            href={`/dashboard/${currentUser.role}`}
-                            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#800000] font-medium transition-colors"
-                        >
-                            <span className="text-lg">←</span> Back to Dashboard
-                        </Link>
-                    </div>
-                )}
+
             </div>
         </div>
     );

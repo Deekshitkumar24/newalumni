@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { CheckCircle2, Briefcase } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Job, Admin } from '@/types';
@@ -300,7 +301,7 @@ export default function AdminJobsPage() {
                                                 ))
                                             ) : (
                                                 <EmptyState
-                                                    icon={activeTab === 'pending' ? '✅' : '💼'}
+                                                    icon={activeTab === 'pending' ? <CheckCircle2 size={48} /> : <Briefcase size={48} />}
                                                     title={`No ${activeTab} jobs`}
                                                     description={activeTab === 'pending' ? "All job postings have been reviewed." : "There are no active job listings currently."}
                                                 />

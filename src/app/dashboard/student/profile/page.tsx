@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import Breadcrumb from '@/components/layout/Breadcrumb';
+import { Pencil } from 'lucide-react';
 
 export default function StudentProfilePage() {
     const router = useRouter();
@@ -135,9 +135,7 @@ export default function StudentProfilePage() {
                                 </Avatar>
                                 {isEditing && (
                                     <label className="absolute bottom-0 right-0 bg-[#800000] text-white p-2.5 rounded-full cursor-pointer hover:bg-[#660000] shadow-md transition-all hover:scale-105">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
+                                        <Pencil size={16} />
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -247,10 +245,7 @@ export default function StudentProfilePage() {
                             )}
                         </div>
                     </CardContent>
-                    <CardFooter className="bg-gray-50 px-8 py-4 flex justify-between items-center border-t border-gray-100 rounded-b-lg">
-                        <Link href="/dashboard/student" className="text-[#800000] hover:underline text-sm font-medium">
-                            ← Back to Dashboard
-                        </Link>
+                    <CardFooter className="bg-gray-50 px-8 py-4 flex justify-end items-center border-t border-gray-100 rounded-b-lg">
                         <Button
                             variant="destructive"
                             size="sm"

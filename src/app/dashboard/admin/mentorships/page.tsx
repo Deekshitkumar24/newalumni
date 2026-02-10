@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MentorshipRequest } from '@/types';
+import { Handshake } from 'lucide-react';
 import { initializeData, getAllMentorships, updateMentorshipStatus, getStudentById, getAlumniById } from '@/lib/data/store';
 import { RowSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
@@ -94,7 +95,7 @@ export default function AdminMentorshipsPage() {
                             })}
                         </div>
                     ) : (
-                        <EmptyState icon="🤝" title="No mentorship requests" description="No mentorship connections found in the system." />
+                        <EmptyState icon={<Handshake size={48} />} title="No mentorship requests" description="No mentorship connections found in the system." />
                     )}
                 </div>
             )}

@@ -138,7 +138,7 @@ export default function Sidebar({ user }: SidebarProps) {
                 {/* User Identity Section - Simplified when collapsed */}
                 <div className={cn(
                     "border-b border-gray-100 transition-all duration-300",
-                    collapsed ? "p-4 flex justify-center" : "p-6"
+                    collapsed ? "p-4 flex justify-center items-center" : "p-6"
                 )}>
                     {collapsed ? (
                         <Avatar className="h-10 w-10 border border-gray-100 cursor-pointer" onClick={toggleSidebar}>
@@ -167,7 +167,10 @@ export default function Sidebar({ user }: SidebarProps) {
                 </div>
 
                 {/* Navigation Section */}
-                <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+                <nav className={cn(
+                    "flex-1 py-6 overflow-y-auto",
+                    collapsed ? "px-0 flex flex-col items-center space-y-2" : "px-3 space-y-1"
+                )}>
                     {menuItems.map((item) => {
                         const active = isActive(item.href);
                         const Icon = item.icon;

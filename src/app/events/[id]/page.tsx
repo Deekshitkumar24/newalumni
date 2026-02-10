@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { getEventById, registerForEvent, initializeData } from '@/lib/data/store';
 import { Event, User } from '@/types';
 
@@ -56,7 +55,6 @@ export default function EventDetailPage() {
     if (!event) {
         return (
             <div>
-                <Breadcrumb items={[{ label: 'Events', href: '/events' }, { label: 'Not Found' }]} />
                 <div className="container mx-auto px-4 py-10 text-center">
                     <h1 className="text-xl text-gray-600">Event not found</h1>
                     <Link href="/events" className="text-[#800000] hover:underline mt-4 inline-block">
@@ -71,8 +69,6 @@ export default function EventDetailPage() {
 
     return (
         <div>
-            <Breadcrumb items={[{ label: 'Events', href: '/events' }, { label: event.title }]} />
-
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-3xl mx-auto">
                     <div className="border border-gray-200 bg-white">

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { getJobsPaginated, initializeData } from '@/lib/data/store';
 import { Job, User } from '@/types';
+import { Building2, MapPin, User as UserIcon, Clock } from 'lucide-react';
+
 
 const ITEMS_PER_PAGE = 10;
 
@@ -157,16 +158,16 @@ export default function DashboardJobsPage() {
                                             </span>
                                         </div>
                                         <div className="text-gray-700 font-medium mb-3 flex items-center gap-2">
-                                            <span>🏢 {job.company}</span>
+                                            <span className="flex items-center gap-1.5"><Building2 size={16} className="text-gray-500" /> {job.company}</span>
                                             <span className="text-gray-300">|</span>
-                                            <span>📍 {job.location}</span>
+                                            <span className="flex items-center gap-1.5"><MapPin size={16} className="text-gray-500" /> {job.location}</span>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                                            <span className="flex items-center gap-1">
-                                                👤 Posted by <span className="font-medium text-gray-700">{job.postedByName}</span>
+                                            <span className="flex items-center gap-1.5">
+                                                <UserIcon size={14} /> Posted by <span className="font-medium text-gray-700">{job.postedByName}</span>
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                🕒 {formatDate(job.postedAt)}
+                                            <span className="flex items-center gap-1.5">
+                                                <Clock size={14} /> {formatDate(job.postedAt)}
                                             </span>
                                         </div>
                                     </div>

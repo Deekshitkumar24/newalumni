@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { authenticateUser, initializeData } from '@/lib/data/store';
 
 import { Input } from '@/components/ui/input';
@@ -61,8 +60,6 @@ export default function LoginPage() {
 
     return (
         <div>
-            <Breadcrumb items={[{ label: 'Login' }]} />
-
             <div className="container mx-auto px-4 py-10">
                 <div className="max-w-md mx-auto">
                     <Card className="w-full shadow-md">

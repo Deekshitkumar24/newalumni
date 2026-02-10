@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Event, Student } from '@/types';
+import { ClipboardList } from 'lucide-react';
+
 import { initializeData, getEvents, getEventRegistrationsPaginated } from '@/lib/data/store';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
@@ -238,7 +240,7 @@ export default function AdminEventDetailPage() {
                                         />
                                     </>
                                 ) : (
-                                    <EmptyState icon="📝" title="No registrations found" description="Try adjusting your filters." />
+                                    <EmptyState icon={<ClipboardList size={48} />} title="No registrations found" description="Try adjusting your filters." />
                                 )}
                             </CardContent>
                         </Card>

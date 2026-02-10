@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { registerAlumni, initializeData } from '@/lib/data/store';
 
 import { Input } from '@/components/ui/input';
@@ -90,8 +89,6 @@ export default function AlumniRegistrationPage() {
     if (success) {
         return (
             <div>
-                <Breadcrumb items={[{ label: 'Register', href: '/register' }, { label: 'Alumni' }]} />
-
                 <div className="container mx-auto px-4 py-10">
                     <div className="max-w-md mx-auto text-center">
                         <Alert className="bg-green-50 border-green-200 p-8 flex flex-col items-center">
@@ -113,8 +110,6 @@ export default function AlumniRegistrationPage() {
 
     return (
         <div>
-            <Breadcrumb items={[{ label: 'Register', href: '/register' }, { label: 'Alumni' }]} />
-
             <div className="container mx-auto px-4 py-10">
                 <div className="max-w-lg mx-auto">
                     <Card className="shadow-lg">

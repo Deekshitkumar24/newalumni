@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 interface EmptyStateProps {
-    icon: string;
+    icon: React.ReactNode | string;
     title: string;
     description: string;
     actionLabel?: string;

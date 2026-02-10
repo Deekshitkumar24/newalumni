@@ -5,6 +5,19 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SliderImage } from '@/types';
 import { initializeData, getSliderImages, addSliderImage, updateSliderImage, deleteSliderImage } from '@/lib/data/store';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 
 export default function AdminSliderPage() {
     const router = useRouter();
@@ -89,22 +102,71 @@ export default function AdminSliderPage() {
             {/* Header */}
             <div className="bg-[#1a1a2e] text-white py-6">
                 <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm text-white mb-2">
-                        <Link href="/dashboard/admin" className="hover:text-white">Dashboard</Link>
-                        <span>/</span>
-                        <span>Slider Management</span>
-                    </div>
+
                     <div className="flex justify-between items-center">
                         <h1 className="text-2xl font-semibold">Slider Management</h1>
-                        <button
-                            onClick={() => {
-                                resetForm();
-                                setShowForm(true);
-                            }}
-                            className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000]"
-                        >
-                            + Add Slide
-                        </button>
+                        <Dialog open={showForm} onOpenChange={setShowForm}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    onClick={() => resetForm()}
+                                    className="bg-[#800000] text-white hover:bg-[#660000]"
+                                >
+                                    + Add Slide
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[600px]">
+                                <DialogHeader>
+                                    <DialogTitle>{editingId ? 'Edit Slide' : 'Add New Slide'}</DialogTitle>
+                                    <DialogDescription>
+                                        Manage the sliding banner images on the homepage.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="title"
+                                            value={formData.title}
+                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            placeholder="e.g., Convocation 2024"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="imageUrl">Image URL <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="imageUrl"
+                                            type="url"
+                                            value={formData.imageUrl}
+                                            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                                            placeholder="https://example.com/image.jpg"
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500">Tip: Use absolute URLs.</p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="link">Link (Optional)</Label>
+                                        <Input
+                                            id="link"
+                                            value={formData.link}
+                                            onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                                            placeholder="/events/123 or https://external.com"
+                                        />
+                                    </div>
+
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={resetForm}>
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" className="bg-[#800000] hover:bg-[#660000] text-white">
+                                            {editingId ? 'Update Slide' : 'Add Slide'}
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
             </div>
@@ -114,76 +176,6 @@ export default function AdminSliderPage() {
                 <div className="bg-blue-50 border border-blue-200 p-4 mb-6 text-sm text-blue-800">
                     <strong>Note:</strong> Since actual file upload requires backend storage, please provide direct image URLs (e.g., from Unsplash or other hosting) for this demo.
                 </div>
-
-                {/* Add/Edit Form */}
-                {showForm && (
-                    <div className="bg-white border border-gray-200 mb-8 max-w-2xl">
-                        <div className="bg-[#800000] text-white px-6 py-4">
-                            <h2 className="font-semibold">{editingId ? 'Edit Slide' : 'Add New Slide'}</h2>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6">
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Title <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    placeholder="e.g., Convocation 2024"
-                                    required
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Image URL <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="url"
-                                    value={formData.imageUrl}
-                                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    placeholder="https://example.com/image.jpg"
-                                    required
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Tip: Use absolute URLs.
-                                </p>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Link (Optional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.link}
-                                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                                    className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                    placeholder="/events/123 or https://external.com"
-                                />
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    type="submit"
-                                    className="bg-[#800000] text-white px-6 py-2 hover:bg-[#660000]"
-                                >
-                                    {editingId ? 'Update Slide' : 'Add Slide'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={resetForm}
-                                    className="border border-gray-300 px-6 py-2 hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
 
                 {/* Slides List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -245,11 +237,7 @@ export default function AdminSliderPage() {
                     )}
                 </div>
 
-                <div className="mt-6">
-                    <Link href="/dashboard/admin" className="text-[#800000] hover:underline">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
         </div>
     );

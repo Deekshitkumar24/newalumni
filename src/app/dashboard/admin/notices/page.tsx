@@ -5,6 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Notice } from '@/types';
 import { initializeData, getNotices, createNotice, deleteNotice } from '@/lib/data/store';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 export default function AdminNoticesPage() {
     const router = useRouter();
@@ -59,82 +74,74 @@ export default function AdminNoticesPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900">Notices Management</h1>
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="bg-[#800000] text-white px-4 py-2 rounded shadow-sm hover:bg-[#660000] transition-colors"
-                >
-                    + Post Notice
-                </button>
+                <Dialog open={showForm} onOpenChange={setShowForm}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-[#800000] text-white hover:bg-[#660000]">
+                            + Post Notice
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                        <DialogHeader>
+                            <DialogTitle>Post New Notice</DialogTitle>
+                            <DialogDescription>
+                                Create a new notice to be displayed to students and alumni.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                                <Input
+                                    id="title"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    placeholder="e.g., Annual Alumni Meet 2025"
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="type">Type</Label>
+                                <Select
+                                    value={formData.type}
+                                    onValueChange={(val) => setFormData({ ...formData, type: val as any })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="general">General</SelectItem>
+                                        <SelectItem value="event">Event</SelectItem>
+                                        <SelectItem value="news">News</SelectItem>
+                                        <SelectItem value="important">Important</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="content">Content <span className="text-red-500">*</span></Label>
+                                <Textarea
+                                    id="content"
+                                    value={formData.content}
+                                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                    rows={4}
+                                    placeholder="Enter notice details..."
+                                    required
+                                />
+                            </div>
+
+                            <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                                    Cancel
+                                </Button>
+                                <Button type="submit" className="bg-[#800000] hover:bg-[#660000] text-white">
+                                    Post Notice
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
-            {/* Add Form */}
-            {showForm && (
-                <div className="bg-white border border-gray-200 mb-8 max-w-2xl">
-                    <div className="bg-[#800000] text-white px-6 py-4">
-                        <h2 className="font-semibold">Post New Notice</h2>
-                    </div>
-                    <form onSubmit={handleSubmit} className="p-6">
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Title <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                placeholder="e.g., Annual Alumni Meet 2025"
-                                required
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Type
-                            </label>
-                            <select
-                                value={formData.type}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                                className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                            >
-                                <option value="general">General</option>
-                                <option value="event">Event</option>
-                                <option value="news">News</option>
-                                <option value="important">Important</option>
-                            </select>
-                        </div>
-
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Content <span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                                value={formData.content}
-                                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                className="w-full border border-gray-300 px-3 py-2 focus:outline-none focus:border-[#800000]"
-                                rows={4}
-                                placeholder="Enter notice details..."
-                                required
-                            />
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                type="submit"
-                                className="bg-[#800000] text-white px-6 py-2 hover:bg-[#660000]"
-                            >
-                                Post Notice
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowForm(false)}
-                                className="border border-gray-300 px-6 py-2 hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
             {/* Notices List */}
             <div className="bg-white border border-gray-200">

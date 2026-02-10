@@ -115,11 +115,7 @@ export default function AlumniBatchPage() {
                     </div>
                 </div>
 
-                <div className="mt-6">
-                    <Link href="/dashboard/alumni" className="text-[#800000] hover:underline">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
         </div>
     );

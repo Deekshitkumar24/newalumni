@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { getJobsPaginated, initializeData } from '@/lib/data/store';
 import { Job, User } from '@/types';
+import { Building2, MapPin, User as UserIcon, Clock, Search } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+
 
 const ITEMS_PER_PAGE = 10;
 
@@ -64,8 +66,6 @@ export default function JobsPage() {
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            <Breadcrumb items={[{ label: 'Jobs & Internships' }]} />
-
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-4 border-b-2 border-[#800000]">
                     <div>
@@ -93,13 +93,13 @@ export default function JobsPage() {
                         <div className="md:col-span-1">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Search</label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-                                <input
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                <Input
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => handleFilterChange(setSearchTerm, e.target.value)}
                                     placeholder="Title, Company, or Location"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent"
+                                    className="pl-10"
                                 />
                             </div>
                         </div>
@@ -158,16 +158,16 @@ export default function JobsPage() {
                                             </span>
                                         </div>
                                         <div className="text-gray-700 font-medium mb-3 flex items-center gap-2">
-                                            <span>🏢 {job.company}</span>
+                                            <span className="flex items-center gap-1.5"><Building2 size={16} className="text-gray-500" /> {job.company}</span>
                                             <span className="text-gray-300">|</span>
-                                            <span>📍 {job.location}</span>
+                                            <span className="flex items-center gap-1.5"><MapPin size={16} className="text-gray-500" /> {job.location}</span>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                                            <span className="flex items-center gap-1">
-                                                👤 Posted by <span className="font-medium text-gray-700">{job.postedByName}</span>
+                                            <span className="flex items-center gap-1.5">
+                                                <UserIcon size={14} /> Posted by <span className="font-medium text-gray-700">{job.postedByName}</span>
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                🕒 {formatDate(job.postedAt)}
+                                            <span className="flex items-center gap-1.5">
+                                                <Clock size={14} /> {formatDate(job.postedAt)}
                                             </span>
                                         </div>
                                     </div>
@@ -214,17 +214,7 @@ export default function JobsPage() {
                     onPageChange={setCurrentPage}
                 />
 
-                {/* Back to Dashboard */}
-                {currentUser && (
-                    <div className="mt-10 pt-6 border-t border-gray-200">
-                        <Link
-                            href={`/dashboard/${currentUser.role}`}
-                            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#800000] font-medium transition-colors"
-                        >
-                            <span className="text-lg">←</span> Back to Dashboard
-                        </Link>
-                    </div>
-                )}
+
             </div>
         </div>
     );

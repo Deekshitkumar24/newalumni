@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Student, Alumni } from '@/types';
+import { CheckCircle2, GraduationCap, Users, Search } from 'lucide-react';
+
 import { initializeData, getStudentsPaginated, getAlumni, updateUserStatus, getStudents, getPendingUsers } from '@/lib/data/store';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
@@ -19,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 
-import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function AdminUsersPage() {
     const router = useRouter();
@@ -171,7 +172,7 @@ export default function AdminUsersPage() {
                                     </TableBody>
                                 </Table>
                             ) : (
-                                <EmptyState icon="✅" title="All caught up!" description="No pending registrations." />
+                                <EmptyState icon={<CheckCircle2 size={48} />} title="All caught up!" description="No pending registrations." />
                             )}
                         </TabsContent>
 
@@ -181,12 +182,13 @@ export default function AdminUsersPage() {
                             <div className="p-6">
                                 {/* Search & Filters */}
                                 <div className="flex flex-col md:flex-row gap-4 mb-6">
-                                    <div className="flex-1">
+                                    <div className="flex-1 relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                                         <Input
                                             placeholder="Search by Name, Roll No, Email..."
                                             value={studentSearch}
                                             onChange={(e) => { setStudentSearch(e.target.value); setStudentsPage(1); }}
-                                            className="focus-visible:ring-[#800000]"
+                                            className="pl-10 focus-visible:ring-[#800000]"
                                         />
                                     </div>
                                     <div className="w-full md:w-[200px]">
@@ -281,7 +283,7 @@ export default function AdminUsersPage() {
                                         </div>
                                     </>
                                 ) : (
-                                    <EmptyState icon="🎓" title="No students found" description="Try adjusting your filters or search." />
+                                    <EmptyState icon={<GraduationCap size={48} />} title="No students found" description="Try adjusting your filters or search." />
                                 )}
                             </div>
                         </TabsContent>
@@ -340,17 +342,13 @@ export default function AdminUsersPage() {
                                         </TableBody>
                                     </Table>
                                 ) : (
-                                    <EmptyState icon="🎓" title="No alumni found" description="Registered alumni will appear here." />
+                                    <EmptyState icon={<Users size={48} />} title="No alumni found" description="Registered alumni will appear here." />
                                 )}
                             </div>
                         </TabsContent>
                     </Card>
 
-                    <div className="mt-8">
-                        <Link href="/dashboard/admin" className="text-[#800000] hover:underline flex items-center gap-2 font-medium">
-                            ← Back to Dashboard
-                        </Link>
-                    </div>
+
                 </Tabs>
             </div>
         </div>

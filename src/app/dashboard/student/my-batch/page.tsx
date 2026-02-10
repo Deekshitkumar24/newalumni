@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Student } from '@/types';
 import { initializeData, getStudents } from '@/lib/data/store';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function StudentBatchPage() {
     const router = useRouter();
@@ -86,11 +85,7 @@ export default function StudentBatchPage() {
                     )}
                 </div>
 
-                <div className="mt-6">
-                    <Link href="/dashboard/student" className="text-[#800000] hover:underline">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
         </div>
     );

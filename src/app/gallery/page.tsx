@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
@@ -42,8 +41,6 @@ export default function GalleryPage() {
 
     return (
         <div className="bg-gray-50 min-h-screen pb-12">
-            <Breadcrumb items={[{ label: 'Gallery' }]} />
-
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-8 pb-4 border-b-2 border-[#800000]">
                     <h1 className="text-3xl font-bold text-[#800000]">

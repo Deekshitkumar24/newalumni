@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Event } from '@/types';
+import { Calendar, Clock, MapPin } from 'lucide-react';
+
 import { initializeData, getUpcomingEvents, getPastEvents, getPendingEvents, createEvent, deleteEvent, updateEvent } from '@/lib/data/store';
 import EmptyState from '@/components/ui/EmptyState';
 import { toast } from 'sonner';
@@ -26,7 +28,6 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 
-import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function AdminEventsPage() {
     const router = useRouter();
@@ -176,14 +177,14 @@ export default function AdminEventsPage() {
                                                         {activeTab === 'pending' && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">PENDING</Badge>}
                                                     </div>
                                                     <div className="text-sm text-gray-600 mb-2 flex flex-wrap items-center gap-4">
-                                                        <span className="flex items-center gap-1">
-                                                            📅 {event.date}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Calendar size={16} className="text-gray-400" /> {event.date}
                                                         </span>
-                                                        <span className="flex items-center gap-1">
-                                                            ⏰ {event.time}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Clock size={16} className="text-gray-400" /> {event.time}
                                                         </span>
-                                                        <span className="flex items-center gap-1">
-                                                            📍 {event.venue}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <MapPin size={16} className="text-gray-400" /> {event.venue}
                                                         </span>
                                                         {event.link && (
                                                             <a href={event.link} target="_blank" rel="noopener noreferrer" className="text-[#800000] hover:underline font-medium">Link ↗</a>

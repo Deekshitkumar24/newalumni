@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import MentorshipRequestModal from '@/components/alumni/MentorshipRequestModal';
 import { getAlumni, initializeData, getMentorshipRequestsByStudent } from '@/lib/data/store';
 import { Alumni, User } from '@/types';
@@ -75,11 +74,6 @@ export default function AlumniProfilePage() {
 
     return (
         <div className="bg-gray-50 min-h-screen pb-12">
-            <Breadcrumb items={[
-                { label: 'Alumni Directory', href: '/alumni-directory' },
-                { label: alumnus.name }
-            ]} />
-
             <div className="container mx-auto px-4 py-8">
                 {/* Profile Header Card */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">

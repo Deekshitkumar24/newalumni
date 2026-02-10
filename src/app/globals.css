@@ -381,29 +381,6 @@ tr:nth-child(even) {
   /* mb-20 */
 }
 
-/* Breadcrumb - Enhanced for accessibility */
-.breadcrumb {
-  background-color: var(--vjit-light-gray);
-  padding: 0.75rem 1.25rem;
-  /* slightly more comfortable */
-  font-size: 0.875rem;
-  /* 14px */
-  margin-bottom: 1.5rem;
-  border-radius: 0.25rem;
-}
-
-.breadcrumb a {
-  color: var(--vjit-maroon);
-  font-weight: 500;
-}
-
-.breadcrumb a:hover {
-  text-decoration: underline;
-}
-
-.breadcrumb span {
-  color: var(--vjit-medium-text);
-}
 
 /* =====================================================
    ACCESSIBILITY SYSTEM (Golden Rules Compliant)

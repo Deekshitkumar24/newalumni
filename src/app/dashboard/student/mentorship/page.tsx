@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/Skeleton"
 
-import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function StudentMentorshipPage() {
     const router = useRouter();
@@ -90,8 +89,6 @@ export default function StudentMentorshipPage() {
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            <Breadcrumb items={[{ label: 'Dashboard', href: '/dashboard/student' }, { label: 'Find Mentors' }]} />
-
             {/* Header */}
             <div className="bg-[#800000] text-white py-6">
                 <div className="container mx-auto px-4">
@@ -187,11 +184,7 @@ export default function StudentMentorshipPage() {
                     </CardContent>
                 </Card>
 
-                <div className="mt-6">
-                    <Link href="/dashboard/student" className="text-[#800000] hover:underline flex items-center gap-2 font-medium">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
 
             {/* Request Dialog */}

@@ -20,7 +20,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function AlumniJobsPage() {
     const router = useRouter();
@@ -102,8 +101,6 @@ export default function AlumniJobsPage() {
 
     return (
         <div className="bg-[#f5f5f5] min-h-screen">
-            <Breadcrumb items={[{ label: 'Dashboard', href: '/dashboard/alumni' }, { label: 'Post Jobs' }]} />
-
             {/* Header */}
             <div className="bg-[#DAA520] text-[#333] py-6">
                 <div className="container mx-auto px-4">
@@ -272,11 +269,7 @@ export default function AlumniJobsPage() {
                     )}
                 </div>
 
-                <div className="mt-6">
-                    <Link href="/dashboard/alumni" className="text-[#800000] hover:underline">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
         </div>
     );

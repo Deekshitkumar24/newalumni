@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { initializeData, getActiveSliderImages, getActiveNotices, getUpcomingEvents, getActiveJobs, getStatistics } from '@/lib/data/store';
 import { SliderImage, Notice, Event, Job } from '@/types';
+import { Calendar, Megaphone, Briefcase, Building2, GraduationCap, BookOpen } from 'lucide-react';
 
 export default function HomePage() {
   const [sliderImages, setSliderImages] = useState<SliderImage[]>([]);
@@ -64,10 +65,10 @@ export default function HomePage() {
                       Fostering a lifelong connection between the Institute and its Alumni.
                     </p>
                     <div className="flex gap-4 pt-4">
-                      <Link href="/register" className="bg-[#DAA520] text-[#1a1a1a] px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-white hover:text-[#800000] transition-all shadow-lg transform hover:-translate-y-1">
+                      <Link href="/register" className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-[#1a1a1a] hover:text-white hover:border-white transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
                         Join Community
                       </Link>
-                      <Link href="/alumni-directory" className="border-2 border-white text-white px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-white hover:text-[#1a1a1a] transition-all shadow-lg">
+                      <Link href="/alumni-directory" className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-[#1a1a1a] hover:text-white hover:border-white transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
                         Search Directory
                       </Link>
                     </div>
@@ -169,7 +170,7 @@ export default function HomePage() {
             <div className="bg-white p-8 rounded shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <span className="text-[#DAA520]">📅</span> Upcoming Events
+                  <Calendar size={20} className="text-[#DAA520]" /> Upcoming Events
                 </h3>
                 <Link href="/events" className="text-xs font-bold text-gray-400 hover:text-[#1e293b]">VIEW ALL</Link>
               </div>
@@ -199,7 +200,7 @@ export default function HomePage() {
             <div className="bg-white p-8 rounded shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <span className="text-[#DAA520]">📢</span> News & Notices
+                  <Megaphone size={20} className="text-[#DAA520]" /> News & Notices
                 </h3>
                 <Link href="#" className="text-xs font-bold text-gray-400 hover:text-[#1e293b]">VIEW ALL</Link>
               </div>
@@ -224,7 +225,7 @@ export default function HomePage() {
             <div className="bg-white p-8 rounded shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <span className="text-[#DAA520]">💼</span> Career
+                  <Briefcase size={20} className="text-[#DAA520]" /> Career
                 </h3>
                 <Link href="/jobs" className="text-xs font-bold text-gray-400 hover:text-[#1e293b]">VIEW ALL</Link>
               </div>
@@ -233,8 +234,8 @@ export default function HomePage() {
                 {recentJobs.length > 0 ? (
                   recentJobs.map(job => (
                     <div key={job.id} className="flex gap-4 items-start group">
-                      <div className="w-10 h-10 bg-gray-50 rounded border border-gray-100 flex items-center justify-center text-gray-400 text-lg">
-                        🏢
+                      <div className="w-10 h-10 bg-gray-50 rounded border border-gray-100 flex items-center justify-center text-gray-400">
+                        <Building2 size={20} />
                       </div>
                       <div>
                         <h4 className="font-bold text-gray-800 group-hover:text-[#DAA520] transition-colors leading-tight">{job.title}</h4>
@@ -283,17 +284,16 @@ export default function HomePage() {
 }
 
 function StatItem({ value, label, icon, isLast }: { value: number; label: string; icon: string; isLast?: boolean }) {
-  // Icons mapping for simplicity
-  const icons: { [key: string]: string } = {
-    'img:grad_cap': '🎓',
-    'img:book': '📚',
-    'img:calendar': '📅',
-    'img:briefcase': '💼'
+  const iconMap: { [key: string]: React.ReactNode } = {
+    'img:grad_cap': <GraduationCap size={36} />,
+    'img:book': <BookOpen size={36} />,
+    'img:calendar': <Calendar size={36} />,
+    'img:briefcase': <Briefcase size={36} />,
   };
 
   return (
     <div className={`text-center py-2 ${!isLast ? '' : ''} group`}>
-      <div className="text-4xl mb-3 text-[#E0E0E0] group-hover:text-[#DAA520] transition-colors">{icons[icon]}</div>
+      <div className="flex justify-center mb-3 text-[#E0E0E0] group-hover:text-[#DAA520] transition-colors">{iconMap[icon]}</div>
       <div className="text-4xl font-bold text-gray-800 mb-1">{value}+</div>
       <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</div>
     </div>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { createJob, initializeData } from '@/lib/data/store';
 import { User } from '@/types';
 
@@ -109,11 +108,6 @@ export default function PostJobPage() {
 
     return (
         <div className="bg-gray-50 min-h-screen pb-12">
-            <Breadcrumb items={[
-                { label: 'Jobs', href: '/jobs' },
-                { label: 'Post a Job' }
-            ]} />
-
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-3xl mx-auto">
                     <h1 className="text-3xl font-bold text-[#800000] mb-2">Post a Job Opportunity</h1>

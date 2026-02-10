@@ -1,0 +1,111 @@
+﻿node.exe : ΓÜá 
+Warning: Next.js 
+inferred your 
+workspace root, but 
+it may not be 
+correct.
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (ΓÜá War   
+ ning: Ne...not b    
+e correct.:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+ We detected 
+multiple lockfiles 
+and selected the 
+directory of 
+C:\Users\Deekshit 
+kumar 
+.k\package-lock.json 
+as the root 
+directory.
+ To silence this 
+warning, set 
+`turbopack.root` in 
+your Next.js config, 
+or consider removing 
+one of the lockfiles 
+if it's not needed.
+   See https://nextjs
+.org/docs/app/api-ref
+erence/config/next-co
+nfig-js/turbopack#roo
+t-directory for more 
+information.
+ Detected additional 
+lockfiles: 
+   * 
+C:\Users\Deekshit 
+kumar .k\newalumni\pa
+ckage-lock.json
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 11.0s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/34) ...
+  Generating static pages using 15 workers (8/34) 
+  Generating static pages using 15 workers (16/34) 
+  Generating static pages using 15 workers (25/34) 
+Γ£ô Generating static pages using 15 workers (34/34) in 862.0ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /about
+Γö£ Γùï /alumni-directory
+Γö£ ╞Æ /alumni-directory/[id]
+Γö£ Γùï /dashboard/admin
+Γö£ Γùï /dashboard/admin/events
+Γö£ ╞Æ /dashboard/admin/events/[id]
+Γö£ Γùï /dashboard/admin/gallery
+Γö£ Γùï /dashboard/admin/jobs
+Γö£ Γùï /dashboard/admin/mentorships
+Γö£ Γùï /dashboard/admin/notices
+Γö£ Γùï /dashboard/admin/slider
+Γö£ Γùï /dashboard/admin/users
+Γö£ Γùï /dashboard/alumni
+Γö£ Γùï /dashboard/alumni/jobs
+Γö£ Γùï /dashboard/alumni/mentorship
+Γö£ Γùï /dashboard/alumni/my-batch
+Γö£ Γùï /dashboard/alumni/profile
+Γö£ Γùï /dashboard/events
+Γö£ Γùï /dashboard/jobs
+Γö£ Γùï /dashboard/messages
+Γö£ Γùï /dashboard/student
+Γö£ Γùï /dashboard/student/mentorship
+Γö£ Γùï /dashboard/student/my-batch
+Γö£ Γùï /dashboard/student/profile
+Γö£ Γùï /events
+Γö£ ╞Æ /events/[id]
+Γö£ Γùï /gallery
+Γö£ Γùï /jobs
+Γö£ ╞Æ /jobs/[id]
+Γö£ Γùï /jobs/new
+Γö£ Γùï /login
+Γö£ Γùï /register
+Γö£ Γùï /register/alumni
+Γöö Γùï /register/student
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

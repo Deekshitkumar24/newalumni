@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { User } from '@/types';
+import { ChevronDown, LayoutDashboard, User as UserIcon, LogOut, X, Menu } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Header() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -145,15 +147,16 @@ export default function Header() {
                                     aria-expanded={userMenuOpen}
                                     aria-haspopup="true"
                                 >
-                                    <div className="h-10 w-10 bg-[#800000] text-white rounded-full flex items-center justify-center shadow-sm">
-                                        <span className="text-lg font-bold leading-none translate-y-[1px]">
+                                    <Avatar className="h-10 w-10 border-2 border-transparent hover:border-[#800000]/20 transition-all">
+                                        <AvatarImage src={currentUser.avatar || ''} alt={currentUser.name} className="object-cover" />
+                                        <AvatarFallback className="bg-[#800000] text-white font-bold text-lg">
                                             {currentUser.name?.charAt(0).toUpperCase()}
-                                        </span>
-                                    </div>
+                                        </AvatarFallback>
+                                    </Avatar>
                                     <div className="text-left hidden xl:block">
                                         <p className="text-sm font-bold text-gray-900 leading-tight">{currentUser.name}</p>
                                     </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+                                    <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {/* Dropdown Menu */}
@@ -170,7 +173,7 @@ export default function Header() {
                                                 onClick={() => setUserMenuOpen(false)}
                                                 className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#800000] rounded-md transition-colors"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>
+                                                <LayoutDashboard size={18} className="opacity-70" />
                                                 Dashboard
                                             </Link>
 
@@ -180,7 +183,7 @@ export default function Header() {
                                                     onClick={() => setUserMenuOpen(false)}
                                                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#800000] rounded-md transition-colors"
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                                    <UserIcon size={18} className="opacity-70" />
                                                     My Profile
                                                 </Link>
                                             )}
@@ -191,7 +194,7 @@ export default function Header() {
                                                 onClick={handleLogout}
                                                 className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 rounded-md transition-colors"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
+                                                <LogOut size={18} className="opacity-70" />
                                                 Log Out
                                             </button>
                                         </div>
@@ -208,7 +211,7 @@ export default function Header() {
                                 </Link>
                                 <Link
                                     href="/register"
-                                    className="bg-[#DAA520] text-white px-6 py-2.5 rounded shadow-sm hover:bg-[#b8860b] hover:shadow-md transition-all font-bold text-[15px] tracking-wide"
+                                    className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-6 py-2.5 rounded font-bold text-[15px] tracking-wide hover:shadow-md hover:border-black active:scale-95 transition-all shadow-sm"
                                 >
                                     Join Community
                                 </Link>
@@ -223,9 +226,9 @@ export default function Header() {
                         aria-label="Toggle menu"
                     >
                         {mobileMenuOpen ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 18 18" /></svg>
+                            <X size={28} />
                         ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
+                            <Menu size={28} />
                         )}
                     </button>
                 </div>
@@ -259,9 +262,12 @@ export default function Header() {
                                 {currentUser ? (
                                     <>
                                         <div className="flex items-center gap-4 mb-2">
-                                            <div className="h-12 w-12 bg-[#800000] text-white rounded-full flex items-center justify-center text-xl font-bold shadow-sm">
-                                                {currentUser.name?.charAt(0).toUpperCase()}
-                                            </div>
+                                            <Avatar className="h-12 w-12 border-2 border-gray-100 shadow-sm">
+                                                <AvatarImage src={currentUser.avatar || ''} alt={currentUser.name} className="object-cover" />
+                                                <AvatarFallback className="bg-[#800000] text-white text-xl font-bold">
+                                                    {currentUser.name?.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
                                             <div>
                                                 <p className="font-bold text-gray-900 text-lg">{currentUser.name}</p>
                                                 <p className="text-sm text-gray-500">{currentUser.email}</p>
@@ -304,7 +310,7 @@ export default function Header() {
                                         </Link>
                                         <Link
                                             href="/register"
-                                            className="bg-[#DAA520] text-white px-4 py-3 rounded-lg text-center font-bold shadow-sm hover:bg-[#b8860b]"
+                                            className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-4 py-3 rounded-lg text-center font-bold hover:shadow-md hover:border-black active:scale-95 transition-all shadow-sm"
                                             onClick={() => setMobileMenuOpen(false)}
                                         >
                                             Join Community

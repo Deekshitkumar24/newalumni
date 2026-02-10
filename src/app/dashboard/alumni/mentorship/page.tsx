@@ -57,11 +57,6 @@ export default function AlumniMentorshipPage() {
             {/* Header */}
             <div className="bg-[#DAA520] text-[#333] py-6">
                 <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 text-sm mb-2">
-                        <Link href="/dashboard/alumni" className="hover:underline">Dashboard</Link>
-                        <span>/</span>
-                        <span>Mentorship Hub</span>
-                    </div>
                     <h1 className="text-2xl font-semibold">Mentorship Hub</h1>
                 </div>
             </div>
@@ -157,11 +152,7 @@ export default function AlumniMentorshipPage() {
                     </div>
                 )}
 
-                <div className="mt-6">
-                    <Link href="/dashboard/alumni" className="text-[#800000] hover:underline">
-                        ← Back to Dashboard
-                    </Link>
-                </div>
+
             </div>
         </div>
     );

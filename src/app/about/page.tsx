@@ -1,10 +1,7 @@
-import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function AboutPage() {
     return (
         <div>
-            <Breadcrumb items={[{ label: 'About' }]} />
-
             <div className="container mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold text-[#800000] mb-6 pb-3 border-b-2 border-[#800000]">
                     About VJIT Alumni Association
