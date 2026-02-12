@@ -152,6 +152,32 @@ export default function StudentSettingsPage() {
             <p className="text-gray-500 mb-8">Manage your account preferences and privacy settings.</p>
 
             <div className="space-y-8">
+                {/* Profile Section */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <User className="text-[#800000]" size={20} />
+                            <CardTitle>Profile Details</CardTitle>
+                        </div>
+                        <CardDescription>Update your personal information.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Department</Label>
+                            <select
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled
+                                value={user?.department || ''}
+                            >
+                                {['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT'].map(d => (
+                                    <option key={d} value={d}>{d}</option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-gray-500">Contact admin to change department.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Notifications Section */}
                 <Card>
                     <CardHeader>

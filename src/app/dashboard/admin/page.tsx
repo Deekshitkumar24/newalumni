@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { initializeData, getStudents, getAlumni, getActiveJobs, getUpcomingEvents, getMentorshipRequests } from '@/lib/data/store';
+import { initializeData, getStudents, getAlumni, getActiveJobs, getUpcomingEvents, getMentorshipRequests, getPendingUsers } from '@/lib/data/store';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AdminDashboard() {
@@ -38,6 +38,7 @@ export default function AdminDashboard() {
         // Get stats
         const students = getStudents();
         const alumni = getAlumni();
+        const pendingUsers = getPendingUsers();
         const jobs = getActiveJobs();
         const events = getUpcomingEvents();
         const mentorships = getMentorshipRequests();
@@ -45,7 +46,7 @@ export default function AdminDashboard() {
         setStats({
             totalStudents: students.length,
             totalAlumni: alumni.length,
-            pendingAlumni: alumni.filter(a => a.status === 'pending').length,
+            pendingAlumni: pendingUsers.length,
             activeJobs: jobs.length,
             upcomingEvents: events.length,
             mentorships: mentorships.length

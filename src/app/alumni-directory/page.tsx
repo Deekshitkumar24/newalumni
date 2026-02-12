@@ -13,12 +13,12 @@ import { Input } from "@/components/ui/input";
 
 const departments = [
     'All Departments',
-    'Computer Science',
-    'Electronics',
-    'Electrical',
-    'Mechanical',
-    'Civil',
-    'Information Technology'
+    'CSE',
+    'ECE',
+    'EEE',
+    'MECH',
+    'CIVIL',
+    'IT'
 ];
 
 const currentYear = new Date().getFullYear();

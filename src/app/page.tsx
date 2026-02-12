@@ -294,7 +294,7 @@ function StatItem({ value, label, icon, isLast }: { value: number; label: string
   return (
     <div className={`text-center py-2 ${!isLast ? '' : ''} group`}>
       <div className="flex justify-center mb-3 text-[#E0E0E0] group-hover:text-[#DAA520] transition-colors">{iconMap[icon]}</div>
-      <div className="text-4xl font-bold text-gray-800 mb-1">{value}+</div>
+      <div className="text-4xl font-bold text-gray-800 mb-1">{value}</div>
       <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</div>
     </div>
   );

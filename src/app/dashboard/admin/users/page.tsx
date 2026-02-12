@@ -196,7 +196,7 @@ export default function AdminUsersPage() {
                                             <SelectTrigger><SelectValue placeholder="Department" /></SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="All Departments">All Departments</SelectItem>
-                                                {['CSE', 'ECE', 'EEE', 'IT', 'Mech', 'Civil'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                                {['CSE', 'ECE', 'EEE', 'IT', 'MECH', 'CIVIL'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>

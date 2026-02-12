@@ -37,10 +37,11 @@ const mockStudents: Student[] = [
         status: 'approved',
         createdAt: '2024-06-15T10:00:00Z',
         rollNumber: '21B01A0501',
-        department: 'Computer Science',
+        department: 'CSE',
         graduationYear: 2025,
         skills: ['Java', 'Python', 'Web Development'],
-        interests: ['Machine Learning', 'Cloud Computing']
+        interests: ['Machine Learning', 'Cloud Computing'],
+        linkedIn: 'https://linkedin.com/in/rahulkumar-vjit'
     },
     {
         id: 'student-2',
@@ -51,10 +52,11 @@ const mockStudents: Student[] = [
         status: 'approved',
         createdAt: '2024-06-20T11:00:00Z',
         rollNumber: '21B01A0412',
-        department: 'Electronics',
+        department: 'ECE',
         graduationYear: 2025,
         skills: ['VLSI', 'Embedded Systems'],
-        interests: ['IoT', 'Robotics']
+        interests: ['IoT', 'Robotics'],
+        linkedIn: 'https://linkedin.com/in/priyasharma-vjit'
     },
     {
         id: 'student-3',
@@ -65,7 +67,7 @@ const mockStudents: Student[] = [
         status: 'pending',
         createdAt: '2024-09-10T09:00:00Z',
         rollNumber: '22B01A0301',
-        department: 'Mechanical',
+        department: 'MECH',
         graduationYear: 2026,
         skills: ['AutoCAD', 'SolidWorks'],
         interests: ['Automotive Design', 'Manufacturing']
@@ -83,7 +85,7 @@ const mockAlumni: Alumni[] = [
         status: 'approved',
         createdAt: '2023-05-10T10:00:00Z',
         graduationYear: 2018,
-        department: 'Computer Science',
+        department: 'CSE',
         currentCompany: 'Microsoft',
         currentRole: 'Senior Software Engineer',
         linkedIn: 'https://linkedin.com/in/sanjaypatel',
@@ -98,7 +100,7 @@ const mockAlumni: Alumni[] = [
         status: 'approved',
         createdAt: '2023-06-15T11:00:00Z',
         graduationYear: 2019,
-        department: 'Computer Science',
+        department: 'CSE',
         currentCompany: 'Google',
         currentRole: 'Product Manager',
         linkedIn: 'https://linkedin.com/in/sneharao',
@@ -113,7 +115,7 @@ const mockAlumni: Alumni[] = [
         status: 'approved',
         createdAt: '2023-07-20T09:00:00Z',
         graduationYear: 2020,
-        department: 'Electronics',
+        department: 'ECE',
         currentCompany: 'Texas Instruments',
         currentRole: 'Hardware Engineer',
         careerJourney: 'Joined TI directly after graduation, working on chip design.'
@@ -127,7 +129,7 @@ const mockAlumni: Alumni[] = [
         status: 'pending',
         createdAt: '2024-01-05T10:00:00Z',
         graduationYear: 2021,
-        department: 'Computer Science',
+        department: 'CSE',
         currentCompany: 'Amazon',
         currentRole: 'SDE-2'
     }
@@ -472,6 +474,46 @@ export function initializeData(): void {
     }
     // Always reset gallery images to ensure new assets are loaded (fixes empty gallery issue)
     saveData('vjit_gallery', mockGallery);
+
+    // ===========================================
+    // MIGRATION: Fix Department Names (Run once/always to ensure consistency)
+    // ===========================================
+    const deptMap: Record<string, string> = {
+        'Computer Science': 'CSE',
+        'Electronics': 'ECE',
+        'Electrical': 'EEE',
+        'Mechanical': 'MECH',
+        'Civil': 'CIVIL',
+        'Information Technology': 'IT'
+    };
+
+    const migrateUsers = (key: string) => {
+        const users = getStoredData<any[]>(key, []);
+        let updated = false;
+        const newUsers = users.map(u => {
+            if (u.department && deptMap[u.department]) {
+                updated = true;
+                return { ...u, department: deptMap[u.department] };
+            }
+            return u;
+        });
+        if (updated) {
+            saveData(key, newUsers);
+            console.log(`Migrated department names for ${key}`);
+        }
+    };
+
+    migrateUsers('vjit_students');
+    migrateUsers('vjit_alumni');
+
+    // Migrate Current Session User
+    const currentUser = getStoredData<any>('vjit_current_user', null);
+    if (currentUser && currentUser.department && deptMap[currentUser.department]) {
+        const newCurrentUser = { ...currentUser, department: deptMap[currentUser.department] };
+        saveData('vjit_current_user', newCurrentUser);
+        console.log('Migrated current user department');
+        // Force reload if needed, but usually state updates will catch it on next fetch
+    }
 }
 
 // ===========================================
@@ -1183,8 +1225,8 @@ export function deleteGalleryImage(id: string): void {
 
 export function getStatistics() {
     return {
-        totalStudents: getStudents().filter(s => s.status === 'approved').length,
-        totalAlumni: getAlumni().filter(a => a.status === 'approved').length,
+        totalStudents: getStudents().length,
+        totalAlumni: getAlumni().length,
         totalEvents: getEvents().length,
         upcomingEvents: getUpcomingEvents().length,
         activeJobs: getActiveJobs().length,

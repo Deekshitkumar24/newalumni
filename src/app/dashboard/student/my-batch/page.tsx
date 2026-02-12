@@ -69,12 +69,31 @@ export default function StudentBatchPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <Link
-                                        href={`/messages?to=${student.id}`}
-                                        className="text-sm border border-[#800000] text-[#800000] px-4 py-2 hover:bg-[#800000] hover:text-white"
-                                    >
-                                        Message
-                                    </Link>
+                                    {student.linkedIn && (
+                                        <a
+                                            href={student.linkedIn}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm border border-[#0077b5] text-[#0077b5] px-4 py-2 hover:bg-[#0077b5] hover:text-white flex items-center gap-2 transition-colors"
+                                        >
+                                            <span>LinkedIn</span>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                                <rect width="4" height="12" x="2" y="9" />
+                                                <circle cx="4" cy="4" r="2" />
+                                            </svg>
+                                        </a>
+                                    )}
                                 </div>
                             ))}
                         </div>

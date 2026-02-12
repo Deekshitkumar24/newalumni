@@ -13,12 +13,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const departments = [
-    'Computer Science',
-    'Electronics',
-    'Electrical',
-    'Mechanical',
-    'Civil',
-    'Information Technology'
+    'CSE',
+    'ECE',
+    'EEE',
+    'MECH',
+    'CIVIL',
+    'IT'
 ];
 
 const currentYear = new Date().getFullYear();

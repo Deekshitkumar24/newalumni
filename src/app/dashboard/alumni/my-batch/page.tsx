@@ -106,12 +106,7 @@ export default function AlumniBatchPage() {
                         <p className="text-gray-500 text-sm mb-4">
                             Share updates, memories, and connect with your batchmates.
                         </p>
-                        <Link
-                            href={`/messages/batch/${user.graduationYear}`}
-                            className="text-[#800000] hover:underline text-sm"
-                        >
-                            Go to Batch Discussion →
-                        </Link>
+
                     </div>
                 </div>
 

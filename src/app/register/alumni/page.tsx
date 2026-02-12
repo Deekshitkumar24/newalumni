@@ -14,12 +14,12 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Textarea } from '@/components/ui/textarea';
 
 const departments = [
-    'Computer Science',
-    'Electronics',
-    'Electrical',
-    'Mechanical',
-    'Civil',
-    'Information Technology'
+    'CSE',
+    'ECE',
+    'EEE',
+    'MECH',
+    'CIVIL',
+    'IT'
 ];
 
 const currentYear = new Date().getFullYear();

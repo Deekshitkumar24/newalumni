@@ -22,6 +22,7 @@ export interface Student extends User {
   graduationYear: number;
   skills: string[];
   interests: string[];
+  linkedIn?: string;
 }
 
 export interface Alumni extends User {
