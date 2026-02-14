@@ -17,7 +17,8 @@ import {
     School,
     ChevronLeft,
     ChevronRight,
-    Search
+    Search,
+    Flag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -104,6 +105,7 @@ export default function Sidebar({ user }: SidebarProps) {
         { label: 'Event Management', href: '/dashboard/admin/events', icon: Calendar },
         { label: 'Job Moderation', href: '/dashboard/admin/jobs', icon: Briefcase },
         { label: 'Mentorship Oversight', href: '/dashboard/admin/mentorships', icon: School },
+        { label: 'Reports', href: '/dashboard/admin/reports', icon: Flag },
         { label: 'Slider Management', href: '/dashboard/admin/slider', icon: ImageIcon },
         { label: 'Gallery', href: '/dashboard/admin/gallery', icon: ImageIcon },
         { label: 'Notices', href: '/dashboard/admin/notices', icon: ShieldAlert },
@@ -119,7 +121,7 @@ export default function Sidebar({ user }: SidebarProps) {
         <TooltipProvider>
             <aside
                 className={cn(
-                    "flex flex-col bg-white border-r border-gray-200 h-[calc(100vh-72px)] sticky top-[72px] transition-all duration-300 ease-in-out z-40",
+                    "flex flex-col bg-white border-r border-gray-200 h-[calc(100vh-72px)] sticky top-[72px] transition-all duration-300 ease-in-out z-40 flex-shrink-0 overflow-hidden",
                     collapsed ? "w-[80px]" : "w-[260px]",
                     // On very small screens, make it absolute or ensure content flows? 
                     // ERP style often keeps it visible. We'll leave it relative (sticky) as requested.
@@ -129,7 +131,7 @@ export default function Sidebar({ user }: SidebarProps) {
                 <div className="absolute -right-3 top-6 z-50">
                     <button
                         onClick={toggleSidebar}
-                        className="bg-white border border-gray-200 rounded-full p-1 shadow-sm hover:bg-gray-50 text-gray-500 hover:text-[#800000] transition-colors"
+                        className="bg-white border border-gray-200 rounded-full p-1.5 shadow-sm hover:bg-gray-50 text-gray-500 hover:text-[#800000] transition-colors focus-visible:ring-2 focus-visible:ring-[#800000]/30 focus-visible:outline-none min-h-[28px] min-w-[28px] flex items-center justify-center"
                     >
                         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
                     </button>
@@ -182,20 +184,20 @@ export default function Sidebar({ user }: SidebarProps) {
                                         <Link
                                             href={item.href}
                                             className={cn(
-                                                "flex items-center justify-center h-10 w-10 mx-auto rounded-md transition-all duration-200 group relative",
+                                                "flex items-center justify-center h-10 w-10 mx-auto rounded-md transition-all duration-200 group relative focus-visible:ring-2 focus-visible:ring-[#800000]/30 focus-visible:outline-none",
                                                 active
-                                                    ? "bg-[#800000] text-white shadow-sm"
-                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                                    ? "bg-[#800000]/10 text-[#800000]"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                                             )}
                                         >
+                                            {active && (
+                                                <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-[#800000] rounded-r-sm"></div>
+                                            )}
                                             <Icon
                                                 size={20}
                                                 strokeWidth={active ? 2.5 : 2}
                                                 className="flex-shrink-0"
                                             />
-                                            {active && (
-                                                <span className="absolute -right-1 top-1 w-2 h-2 bg-[#DAA520] rounded-full border-2 border-white"></span>
-                                            )}
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" className="bg-[#1a1a2e] text-white border-0 font-medium ml-2">
@@ -210,10 +212,10 @@ export default function Sidebar({ user }: SidebarProps) {
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group text-sm font-medium relative overflow-hidden",
+                                    "flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group text-sm font-medium relative overflow-hidden focus-visible:ring-2 focus-visible:ring-[#800000]/30 focus-visible:outline-none",
                                     active
-                                        ? "bg-[#800000]/5 text-[#800000] font-semibold"
-                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                        ? "bg-[#800000]/10 text-[#800000] font-semibold"
+                                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-700"
                                 )}
                             >
                                 {active && (
@@ -240,7 +242,7 @@ export default function Sidebar({ user }: SidebarProps) {
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={handleLogout}
-                                    className="flex items-center justify-center w-full h-10 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-700 transition-colors"
+                                    className="flex items-center justify-center w-full h-10 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-700 transition-colors focus-visible:ring-2 focus-visible:ring-red-500/30 focus-visible:outline-none"
                                 >
                                     <LogOut size={20} />
                                 </button>
@@ -252,7 +254,7 @@ export default function Sidebar({ user }: SidebarProps) {
                     ) : (
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 rounded-md transition-all duration-200 group"
+                            className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 rounded-md transition-all duration-200 group focus-visible:ring-2 focus-visible:ring-red-500/30 focus-visible:outline-none"
                         >
                             <LogOut size={20} className="text-gray-400 group-hover:text-red-600 transition-colors" />
                             Sign Out

@@ -118,7 +118,6 @@ body {
   /* 28-36px */
   font-weight: 700;
   line-height: 1.2;
-  color: var(--vjit-maroon);
 }
 
 .text-section-title {
@@ -252,11 +251,126 @@ a:hover {
 }
 
 .btn-outline:hover {
-  background-color: var(--vjit-maroon);
-  color: white;
+  background-color: rgba(128, 0, 0, 0.08);
+  color: var(--vjit-maroon);
 }
 
 .btn-outline:focus {
+  outline: 2px solid var(--vjit-maroon);
+  outline-offset: 2px;
+}
+
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Active press feedback for all buttons */
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.btn-outline:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =====================================================
+   TAG / BADGE SYSTEM (Unified Colors)
+   ===================================================== */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.tag-fulltime {
+  background-color: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.tag-internship {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.tag-parttime {
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.tag-general {
+  background-color: #faf5ff;
+  color: #7c3aed;
+  border-color: #ddd6fe;
+}
+
+/* =====================================================
+   CARD STABILITY SYSTEM
+   ===================================================== */
+
+.card-stable {
+  background: white;
+  border: 1px solid var(--vjit-gray);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.card-stable:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  /* No padding, height, or position changes */
+}
+
+/* =====================================================
+   SUBTLE OUTLINE BUTTON VARIANT (for View Details, View Profile)
+   Hover shows tinted background, never full color fill
+   ===================================================== */
+
+.btn-outline-subtle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--vjit-maroon);
+  color: var(--vjit-maroon);
+  background-color: transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 2.375rem;
+}
+
+.btn-outline-subtle:hover {
+  background-color: rgba(128, 0, 0, 0.06);
+  border-color: var(--vjit-maroon-dark);
+  color: var(--vjit-maroon-dark);
+}
+
+.btn-outline-subtle:active {
+  transform: scale(0.98);
+}
+
+.btn-outline-subtle:focus-visible {
   outline: 2px solid var(--vjit-maroon);
   outline-offset: 2px;
 }

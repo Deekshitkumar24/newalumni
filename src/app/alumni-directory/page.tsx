@@ -206,7 +206,7 @@ export default function AlumniDirectoryPage() {
                                         <td className="px-6 py-4 text-right">
                                             <Link
                                                 href={`/alumni-directory/${alumnus.id}`}
-                                                className="text-sm font-medium text-[#800000] border border-[#800000] rounded px-3 py-1.5 hover:bg-[#800000] hover:text-white transition-all inline-block"
+                                                className="text-sm font-medium text-[#800000] border border-[#800000] rounded px-3 py-1.5 hover:bg-[#800000]/[0.06] hover:border-[#660000] active:scale-[0.98] transition-all inline-block"
                                             >
                                                 View Profile
                                             </Link>

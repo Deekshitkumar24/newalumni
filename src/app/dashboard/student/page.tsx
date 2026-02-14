@@ -99,7 +99,7 @@ export default function StudentDashboard() {
 
             {/* Profile Summary */}
             <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-                <h2 className="text-lg font-semibold text-[#800000] mb-4">Profile Summary</h2>
+                <h2 className="text-xl font-semibold text-[#800000] mb-4">Profile Summary</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                         <span className="text-gray-500">Roll Number:</span>

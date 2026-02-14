@@ -52,7 +52,7 @@ export default function DashboardLayout({
             <DashboardTopbar />
             <div className="flex min-h-[calc(100vh-72px)]">
                 <Sidebar user={user} />
-                <main className="flex-1 w-full overflow-x-hidden p-6 md:p-8">
+                <main className="flex-1 w-full overflow-x-hidden p-6 md:p-8 transition-all duration-300">
                     {children}
                 </main>
             </div>

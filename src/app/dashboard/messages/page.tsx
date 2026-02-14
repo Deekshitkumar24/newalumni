@@ -8,8 +8,29 @@ import { initializeData, getConversations, getMessages, sendMessage, getUsers } 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChatListSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
+import ReportModal from '@/components/features/chat/ReportModal';
+import { createReport } from '@/lib/data/store';
+import { toast } from 'sonner';
+import {
+    MoreVertical,
+    User as UserIcon, // Renamed to avoid conflict with '@/types' User
+    Flag
+} from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-export default function DashboardMessagesPage() {
+export default function MessagesPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialToId = searchParams.get('to');
@@ -21,6 +42,7 @@ export default function DashboardMessagesPage() {
     const [newMessage, setNewMessage] = useState('');
     const [users, setUsers] = useState<User[]>([]);
     const [otherUser, setOtherUser] = useState<User | null>(null);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -193,6 +215,39 @@ export default function DashboardMessagesPage() {
         return user ? user.name : 'Unknown User';
     };
 
+    const handleReportSubmit = async (reason: string, description: string) => {
+        if (!currentUser || !otherUser || !activeConversationId) return;
+
+        // Create a deep copy of the last 20 messages
+        const messagesSnapshot = JSON.parse(JSON.stringify(messages.slice(-20)));
+
+        const reportData = {
+            reporterId: currentUser.id,
+            reporterName: currentUser.name,
+            reporterRole: currentUser.role,
+            reportedUserId: otherUser.id,
+            reportedUserName: otherUser.name,
+            reportedUserRole: otherUser.role,
+            conversationId: activeConversationId,
+            reason,
+            description,
+            messagesSnapshot
+        };
+
+        const result = createReport(reportData);
+
+        if (result.success) {
+            toast.success('Report Submitted', {
+                description: 'The conversation has been reported to the administration for review.'
+            });
+            setIsReportModalOpen(false);
+        } else {
+            toast.error('Submission Failed', {
+                description: result.message
+            });
+        }
+    };
+
     return (
         <div className="h-[calc(100vh-120px)] flex flex-col">
             <div className="mb-4">
@@ -279,6 +334,58 @@ export default function DashboardMessagesPage() {
                                         )}
                                     </div>
                                 </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+                                            aria-label="Conversation actions"
+                                        >
+                                            <MoreVertical className="h-5 w-5" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-48">
+                                        <DropdownMenuItem
+                                            className="cursor-pointer font-medium"
+                                            onClick={() => {
+                                                if (!otherUser?.id) {
+                                                    console.warn('Cannot navigate: User ID is missing');
+                                                    return;
+                                                }
+
+                                                let profilePath = '';
+                                                if (otherUser.role === 'student') {
+                                                    // As per requirement: navigate to /students/[id]
+                                                    // Note: Ensure this route exists or is handled
+                                                    profilePath = `/students/${otherUser.id}`;
+                                                } else if (otherUser.role === 'alumni') {
+                                                    // Map 'alumni' role to the existing directory route
+                                                    profilePath = `/alumni-directory/${otherUser.id}`;
+                                                }
+
+                                                if (profilePath) {
+                                                    // Use window.location for full navigation if needed, or router.push
+                                                    // Using window.location to ensure fresh data load as per previous patterns
+                                                    // But router.push is better for SPA.
+                                                    // User asked for "Maintain SPA-style navigation", so router.push
+                                                    router.push(profilePath);
+                                                }
+                                            }}
+                                        >
+                                            <UserIcon className="mr-2 h-4 w-4 text-gray-500" />
+                                            View Profile
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="cursor-pointer font-medium text-gray-700 hover:text-gray-900 hover:bg-amber-50 focus:bg-amber-50 focus:text-gray-900"
+                                            onClick={() => setIsReportModalOpen(true)}
+                                            aria-label="Report this conversation"
+                                        >
+                                            <Flag className="mr-2 h-4 w-4 text-gray-500" />
+                                            Report Conversation
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
 
                             {/* Messages List */}
@@ -343,6 +450,13 @@ export default function DashboardMessagesPage() {
                     )}
                 </div>
             </div>
+
+            <ReportModal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                onSubmit={handleReportSubmit}
+                reportedUser={otherUser}
+            />
         </div>
     );
 }

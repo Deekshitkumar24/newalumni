@@ -205,13 +205,13 @@ export default function Header() {
                             <div className="flex items-center gap-4 ml-8">
                                 <Link
                                     href="/login"
-                                    className="bg-white text-[#800000] border border-[#800000] px-6 py-2.5 rounded hover:bg-red-50 transition-all font-semibold text-[15px] tracking-wide"
+                                    className="bg-white text-[#800000] px-6 py-2.5 rounded hover:bg-red-50 transition-all font-semibold text-[15px] tracking-wide hover:shadow-md hover:border-black active:scale-95 transition-all shadow-sm"
                                 >
                                     Member Login
                                 </Link>
                                 <Link
                                     href="/register"
-                                    className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-6 py-2.5 rounded font-bold text-[15px] tracking-wide hover:shadow-md hover:border-black active:scale-95 transition-all shadow-sm"
+                                    className="bg-white text-[#1a1a1a]  px-6 py-2.5 rounded font-bold text-[15px] tracking-wide hover:shadow-md hover:border-black active:scale-95 transition-all shadow-sm"
                                 >
                                     Join Community
                                 </Link>

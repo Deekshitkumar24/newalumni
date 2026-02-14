@@ -88,7 +88,7 @@ export default function DashboardTopbar() {
                 {/* Right Actions */}
                 <div className="flex items-center gap-6">
                     {/* Notifications (Placeholder for now) */}
-                    <button className="text-gray-500 hover:text-[#800000] transition-colors relative">
+                    <button className="text-gray-500 hover:text-[#800000] transition-colors relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#800000]/30 focus-visible:outline-none" aria-label="Notifications">
                         <Bell size={20} />
                         {/* <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white"></span> */}
                     </button>
@@ -97,7 +97,7 @@ export default function DashboardTopbar() {
                     <div className="relative user-menu-container">
                         <button
                             onClick={() => setUserMenuOpen(!userMenuOpen)}
-                            className="flex items-center gap-3 focus:outline-none group"
+                            className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#800000]/30 rounded-lg p-1 group"
                         >
                             <div className="text-right hidden md:block">
                                 <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#800000] transition-colors">

@@ -154,3 +154,24 @@ export interface GalleryImage {
   category: 'campus' | 'events' | 'reunion' | 'other';
   date: string;
 }
+
+// Report Types
+export type ReportStatus = 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'DISMISSED';
+
+export interface Report {
+  id: string;
+  reporterId: string;
+  reporterName: string;
+  reporterRole: UserRole;
+  reportedUserId: string;
+  reportedUserName: string;
+  reportedUserRole: UserRole;
+  conversationId: string;
+  reason: string;
+  description: string;
+  messagesSnapshot: Message[]; // Deep copy of last 20 messages
+  status: ReportStatus;
+  adminNotes?: string;
+  timestamp: string;
+  updatedAt: string;
+}

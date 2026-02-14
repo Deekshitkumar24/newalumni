@@ -12,7 +12,9 @@ import {
     Notice,
     GalleryImage,
     User,
-    UserRole
+    UserRole,
+    Report,
+    ReportStatus
 } from '@/types';
 
 // Default Admin User
@@ -412,6 +414,43 @@ const mockGallery: GalleryImage[] = [
     }
 ];
 
+// Mock Reports
+const mockReports: Report[] = [
+    {
+        id: 'report-1',
+        reporterId: 'student-1',
+        reporterName: 'Rahul Kumar',
+        reporterRole: 'student',
+        reportedUserId: 'alumni-1',
+        reportedUserName: 'Sanjay Patel',
+        reportedUserRole: 'alumni',
+        conversationId: 'conv-1',
+        reason: 'Harassment',
+        description: 'The user is making uncomfortable comments about my personal life.',
+        messagesSnapshot: [
+            {
+                id: 'msg-1',
+                conversationId: 'conv-1',
+                senderId: 'student-1',
+                content: 'Thank you for accepting my mentorship request!',
+                createdAt: '2024-08-12T16:00:00Z',
+                isRead: true
+            },
+            {
+                id: 'msg-2',
+                conversationId: 'conv-1',
+                senderId: 'alumni-1',
+                content: 'Happy to help! Feel free to ask any questions about cloud technologies.',
+                createdAt: '2024-08-12T17:00:00Z',
+                isRead: true
+            }
+        ],
+        status: 'OPEN',
+        timestamp: '2024-08-12T18:00:00Z',
+        updatedAt: '2024-08-12T18:00:00Z'
+    }
+];
+
 // ===========================================
 // DATA ACCESS FUNCTIONS
 // ===========================================
@@ -474,6 +513,9 @@ export function initializeData(): void {
     }
     // Always reset gallery images to ensure new assets are loaded (fixes empty gallery issue)
     saveData('vjit_gallery', mockGallery);
+    if (!localStorage.getItem('vjit_reports')) {
+        saveData('vjit_reports', mockReports);
+    }
 
     // ===========================================
     // MIGRATION: Fix Department Names (Run once/always to ensure consistency)
@@ -801,6 +843,85 @@ export function getEventsPaginated(
 
     return { data, total, totalPages };
 }
+
+// ===========================================
+// REPORT FUNCTIONS
+// ===========================================
+
+export function getReports(): Report[] {
+    return getStoredData('vjit_reports', mockReports);
+}
+
+export function getReportById(id: string): Report | undefined {
+    return getReports().find(r => r.id === id);
+}
+
+export function createReport(data: Omit<Report, 'id' | 'timestamp' | 'updatedAt' | 'status'>): { success: boolean; message: string; report?: Report } {
+    const reports = getReports();
+
+    // prevent self-report
+    if (data.reporterId === data.reportedUserId) {
+        return { success: false, message: 'You cannot report yourself.' };
+    }
+
+    // prevent duplicate OPEN reports for same conversation by same reporter
+    const existingOpenReport = reports.find(r =>
+        r.reporterId === data.reporterId &&
+        r.conversationId === data.conversationId &&
+        r.status === 'OPEN'
+    );
+
+    if (existingOpenReport) {
+        return { success: false, message: 'You already have an open report for this conversation.' };
+    }
+
+    // Validate 24h cooldown for same conversation
+    const lastReport = reports.find(r =>
+        r.reporterId === data.reporterId &&
+        r.conversationId === data.conversationId
+    );
+
+    if (lastReport) {
+        const lastReportTime = new Date(lastReport.timestamp).getTime();
+        const now = Date.now();
+        const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+        if (now - lastReportTime < cooldown) {
+            return { success: false, message: 'You can only submit one report per conversation every 24 hours.' };
+        }
+    }
+
+    const newReport: Report = {
+        ...data,
+        id: `report-${Date.now()}`,
+        status: 'OPEN',
+        timestamp: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+
+    reports.push(newReport);
+    saveData('vjit_reports', reports);
+    return { success: true, message: 'Report submitted successfully.', report: newReport };
+}
+
+export function updateReportStatus(id: string, status: ReportStatus, adminNotes?: string): boolean {
+    const reports = getReports();
+    const index = reports.findIndex(r => r.id === id);
+
+    if (index !== -1) {
+        const updatedReport = {
+            ...reports[index],
+            status,
+            adminNotes: adminNotes || reports[index].adminNotes,
+            updatedAt: new Date().toISOString()
+        };
+        reports[index] = updatedReport;
+        saveData('vjit_reports', reports);
+        return true;
+    }
+    return false;
+}
+
+
 
 export function getEventById(id: string): Event | undefined {
     return getEvents().find(e => e.id === id);

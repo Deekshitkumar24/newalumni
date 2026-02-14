@@ -148,11 +148,11 @@ export default function JobsPage() {
                                                     {job.title}
                                                 </h2>
                                             </Link>
-                                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${job.type === 'full-time'
-                                                ? 'bg-green-100 text-green-700'
+                                            <span className={`tag ${job.type === 'full-time'
+                                                ? 'tag-fulltime'
                                                 : job.type === 'internship'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'bg-yellow-100 text-yellow-700'
+                                                    ? 'tag-internship'
+                                                    : 'tag-parttime'
                                                 }`}>
                                                 {job.type.replace('-', ' ').toUpperCase()}
                                             </span>
@@ -174,7 +174,7 @@ export default function JobsPage() {
                                     <div className="flex-shrink-0 self-center md:self-start">
                                         <Link
                                             href={`/jobs/${job.id}`}
-                                            className="inline-block border border-[#800000] text-[#800000] px-4 py-2 text-sm font-medium rounded hover:bg-[#800000] hover:text-white transition-colors whitespace-nowrap"
+                                            className="inline-block border border-[#800000] text-[#800000] px-4 py-2 text-sm font-medium rounded hover:bg-[#800000]/[0.06] hover:border-[#660000] active:scale-[0.98] transition-all whitespace-nowrap"
                                         >
                                             View Details
                                         </Link>

@@ -34,7 +34,7 @@ export default function RegisterPage() {
                                 </ul>
                                 <Link
                                     href="/register/student"
-                                    className="block text-center bg-[#800000] !text-white font-bold py-3 hover:bg-[#660000] transition-colors rounded-sm"
+                                    className="block text-center bg-[#800000] !text-white font-bold py-3 hover:bg-[#660000] active:scale-[0.98] transition-all duration-200 rounded-sm"
                                 >
                                     Register as Student
                                 </Link>
@@ -60,7 +60,7 @@ export default function RegisterPage() {
                                 </ul>
                                 <Link
                                     href="/register/alumni"
-                                    className="block text-center bg-[#DAA520] text-[#333] py-3 hover:bg-[#f0c75e]"
+                                    className="block text-center bg-[#DAA520] text-[#333] font-bold py-3 hover:bg-[#c8912a] active:scale-[0.98] transition-all duration-200 rounded-sm"
                                 >
                                     Register as Alumni
                                 </Link>

@@ -65,10 +65,10 @@ export default function HomePage() {
                       Fostering a lifelong connection between the Institute and its Alumni.
                     </p>
                     <div className="flex gap-4 pt-4">
-                      <Link href="/register" className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-[#1a1a1a] hover:text-white hover:border-white transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
+                      <Link href="/register" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
                         Join Community
                       </Link>
-                      <Link href="/alumni-directory" className="bg-white text-[#1a1a1a] border-2 border-gray-800 px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-[#1a1a1a] hover:text-white hover:border-white transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
+                      <Link href="/alumni-directory" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
                         Search Directory
                       </Link>
                     </div>
@@ -240,7 +240,7 @@ export default function HomePage() {
                       <div>
                         <h4 className="font-bold text-gray-800 group-hover:text-[#DAA520] transition-colors leading-tight">{job.title}</h4>
                         <p className="text-xs text-gray-500 mb-1">{job.company}</p>
-                        <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-medium">{job.type}</span>
+                        <span className={`tag ${job.type === 'full-time' ? 'tag-fulltime' : job.type === 'internship' ? 'tag-internship' : 'tag-parttime'}`}>{job.type.replace('-', ' ').toUpperCase()}</span>
                       </div>
                     </div>
                   ))
@@ -250,7 +250,7 @@ export default function HomePage() {
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-100">
-                <Link href="/dashboard/alumni" className="block w-full text-center bg-gray-50 text-gray-600 py-2 rounded text-sm font-bold hover:bg-[#1e293b] hover:text-white transition-all">
+                <Link href="/dashboard/alumni" className="block w-full text-center bg-gray-50 text-gray-600 py-2 rounded text-sm font-bold hover:bg-gray-100 hover:text-gray-900 active:scale-[0.98] transition-all">
                   Post a Job
                 </Link>
               </div>
@@ -270,10 +270,10 @@ export default function HomePage() {
             Update your contact information, share your achievements, and mentor the next generation.
           </p>
           <div className="flex justify-center gap-6">
-            <Link href="/login" className="bg-white text-[#1e293b] !text-[#1e293b] px-8 py-3 rounded font-bold hover:bg-gray-100 shadow-lg transition-transform hover:-translate-y-1">
+            <Link href="/login" className="bg-white text-[#1e293b] !text-[#1e293b] px-8 py-3 rounded font-bold hover:bg-gray-100 active:scale-[0.98] shadow-lg transition-all hover:-translate-y-1">
               Login to Portal
             </Link>
-            <Link href="/register" className="bg-[#DAA520] text-[#1e293b] !text-[#1e293b] px-8 py-3 rounded font-bold hover:bg-[#b8860b] hover:text-white transition-transform hover:-translate-y-1 shadow-lg">
+            <Link href="/register" className="bg-[#DAA520] text-[#1e293b] !text-[#1e293b] px-8 py-3 rounded font-bold hover:bg-[#c49a1a] active:scale-[0.98] transition-all hover:-translate-y-1 shadow-lg">
               Register as Alumni
             </Link>
           </div>
