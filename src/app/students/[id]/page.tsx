@@ -125,7 +125,7 @@ export default function StudentProfilePage() {
 
                         <div className="flex flex-wrap gap-2 mb-6">
                             <Badge variant="secondary" className="px-3 py-1 text-sm">
-                                🎓 Batch of {student.graduationYear}
+                                🎓 Batch of {student.batch}
                             </Badge>
                             <Badge variant="outline" className="px-3 py-1 text-sm border-gray-300">
                                 🆔 Roll No: {student.rollNumber}

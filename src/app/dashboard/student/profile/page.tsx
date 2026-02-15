@@ -24,7 +24,8 @@ export default function StudentProfilePage() {
         skills: '',
         interests: '',
         profileImage: '',
-        fullName: '' // Added fullName editing support
+        fullName: '', // Added fullName editing support
+        batch: '' // Added batch editing support
     });
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +69,8 @@ export default function StudentProfilePage() {
                         skills: mergedUser.skills?.join(', ') || '',
                         interests: mergedUser.interests?.join(', ') || '',
                         profileImage: mergedUser.profileImage || '',
-                        fullName: mergedUser.name
+                        fullName: mergedUser.name,
+                        batch: mergedUser.batch?.toString() || ''
                     });
                 }
             } catch (error) {
@@ -96,7 +98,8 @@ export default function StudentProfilePage() {
                 skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
                 interests: formData.interests.split(',').map(s => s.trim()).filter(s => s),
                 profileImage: formData.profileImage || undefined,
-                fullName: formData.fullName
+                fullName: formData.fullName,
+                batch: formData.batch ? parseInt(formData.batch) : undefined
             };
 
             const res = await fetch('/api/profile/me', {
@@ -112,7 +115,8 @@ export default function StudentProfilePage() {
             const updatedUser = {
                 ...user,
                 ...payload,
-                name: payload.fullName || user.name
+                name: payload.fullName || user.name,
+                batch: payload.batch || user.batch
             };
 
             setUser(updatedUser as any); // Cast as merging types is tricky sometimes
@@ -212,8 +216,18 @@ export default function StudentProfilePage() {
                                 <div className="font-medium text-gray-900">{user.department}</div>
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-gray-500">Graduation Year</Label>
-                                <div className="font-medium text-gray-900">{user.graduationYear}</div>
+                                <Label className="text-gray-500">Batch</Label>
+                                {isEditing ? (
+                                    <Input
+                                        type="number"
+                                        value={formData.batch}
+                                        onChange={e => setFormData({ ...formData, batch: e.target.value })}
+                                        className="font-medium text-gray-900"
+                                        placeholder="e.g., 2024"
+                                    />
+                                ) : (
+                                    <div className="font-medium text-gray-900">{user.batch}</div>
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-gray-500">Role</Label>
@@ -255,7 +269,8 @@ export default function StudentProfilePage() {
                                                     skills: user.skills?.join(', ') || '',
                                                     interests: user.interests?.join(', ') || '',
                                                     profileImage: user.profileImage || '',
-                                                    fullName: user.name
+                                                    fullName: user.name,
+                                                    batch: user.batch?.toString() || ''
                                                 });
                                             }}
                                         >

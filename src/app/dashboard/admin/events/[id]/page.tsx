@@ -237,7 +237,7 @@ export default function AdminEventDetailPage() {
                                                             </TableCell>
                                                             <TableCell className="text-gray-600 font-mono text-sm">{student.rollNumber}</TableCell>
                                                             <TableCell className="text-gray-600">
-                                                                {student.department} '{student.graduationYear?.toString().slice(-2)}
+                                                                Batch: {student.batch}
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Badge variant="secondary" className={`font-semibold ${student.status === 'approved' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'}`}>

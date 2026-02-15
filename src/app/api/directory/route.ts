@@ -44,10 +44,7 @@ export async function GET(req: Request) {
             }
 
             if (query) {
-                baseConditions.push(or(
-                    ilike(users.fullName, `%${query}%`),
-                    ilike(users.email, `%${query}%`)
-                ));
+                baseConditions.push(sql`(${users.fullName} ILIKE ${`%${query}%`} OR ${users.email} ILIKE ${`%${query}%`})`);
             }
 
             let queryBuilder;
@@ -63,32 +60,18 @@ export async function GET(req: Request) {
                     profileImage: users.profileImage,
                     department: studentProfiles.department,
                     batch: studentProfiles.batch,
-                    linkedIn: studentProfiles.linkedIn,
-                    website: studentProfiles.website,
-                    github: studentProfiles.github
                 };
 
-                queryBuilder = db.select(fields)
+                queryBuilder = db.select(fields as any)
                     .from(users)
                     .innerJoin(studentProfiles, eq(users.id, studentProfiles.userId))
                     .where(and(...baseConditions));
 
             } else {
-                // Default to alumni search if no role specified or explicitly 'alumni'
-                // Since this is "Alumni Directory", defaults to alumni usually.
-                // But if role is explicitly 'alumni', apply specific filters.
-
                 if (department) baseConditions.push(eq(alumniProfiles.department, department));
                 if (year) baseConditions.push(eq(alumniProfiles.graduationYear, year));
                 if (company) baseConditions.push(ilike(alumniProfiles.company, `%${company}%`));
 
-                // Strict 'alumni' if role not provided? 
-                // Let's assume yes for consistent "Directory" behavior usually focused on Alumni.
-                // Or if we want mixed, we need a Union. For now, defaulting to 'alumni' (or both if careful).
-                // But `alumniProfiles` join forces alumni.
-
-                // If role is undefined, we force 'alumni' logic for now as it's the safest assumption for "Alumni Directory" calls
-                // If user wants students, they should pass role='student'
                 if (!role) baseConditions.push(eq(users.role, 'alumni'));
 
                 const fields = isCount ? { count: sql<number>`count(*)` } : {
@@ -100,12 +83,9 @@ export async function GET(req: Request) {
                     graduationYear: alumniProfiles.graduationYear,
                     company: alumniProfiles.company,
                     designation: alumniProfiles.designation,
-                    linkedIn: alumniProfiles.linkedIn,
-                    website: alumniProfiles.website,
-                    // github: alumniProfiles.github // Check schema if exists
                 };
 
-                queryBuilder = db.select(fields)
+                queryBuilder = db.select(fields as any)
                     .from(users)
                     .innerJoin(alumniProfiles, eq(users.id, alumniProfiles.userId))
                     .where(and(...baseConditions));
@@ -119,11 +99,11 @@ export async function GET(req: Request) {
         // Include sort?
         // dataQuery = dataQuery.orderBy(desc(users.createdAt)); // Or name?
 
-        const data = await dataQuery;
+        const data = await dataQuery as any[];
 
         // 2. Get Total Count
         // We use the same query builder logic but select count
-        const countRes = await buildQuery(true);
+        const countRes = await buildQuery(true) as any[];
         const total = Number(countRes[0]?.count || 0);
 
         return NextResponse.json({
@@ -131,8 +111,8 @@ export async function GET(req: Request) {
                 ...u,
                 name: u.fullName, // Map for UI if needed
                 // Add friendly display fields
-                currentRole: (u as any).designation, // Map designation to currentRole
-                currentCompany: (u as any).company,
+                currentRole: u.designation, // Map designation to currentRole
+                currentCompany: u.company,
             })),
             meta: {
                 page,

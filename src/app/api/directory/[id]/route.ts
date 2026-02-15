@@ -3,9 +3,9 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq, isNull } from 'drizzle-orm';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = await params; // await params in Next.js 15+
+        const { id } = await params;
 
         const user = await db.query.users.findFirst({
             where: (users, { eq, and }) => and(

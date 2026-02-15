@@ -19,7 +19,7 @@ export interface Student extends User {
   role: 'student';
   rollNumber: string;
   department: string;
-  graduationYear: number;
+  batch: number;
   skills: string[];
   interests: string[];
   linkedIn?: string;

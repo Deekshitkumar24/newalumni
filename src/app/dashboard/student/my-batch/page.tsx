@@ -35,7 +35,7 @@ export default function StudentBatchPage() {
                 // If currentUser has graduationYear, we use that.
                 // Or we fetch current user profile again?
                 // Assuming currentUser object is sufficient for now.
-                const year = currentUser.graduationYear || currentUser.batch;
+                const year = currentUser.batch;
 
                 if (!year) {
                     console.warn("User has no batch/year defined.");
@@ -74,7 +74,7 @@ export default function StudentBatchPage() {
     return (
         <div className="bg-[#f5f5f5] min-h-screen">
             <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-[#800000] mb-6">My Batch ({user.graduationYear || user.batch})</h1>
+                <h1 className="text-3xl font-bold text-[#800000] mb-6">My Batch ({user.batch})</h1>
 
                 <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                     <div className="bg-[#800000] text-white px-6 py-4 flex justify-between items-center">

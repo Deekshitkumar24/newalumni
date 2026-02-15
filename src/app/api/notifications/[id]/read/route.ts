@@ -12,12 +12,12 @@ async function getAuthUser(req: Request) {
     } catch { return null; }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const notificationId = params.id;
+        const { id: notificationId } = await params;
 
         await db.update(notifications)
             .set({
