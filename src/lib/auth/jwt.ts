@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
+import { env } from '@/lib/env';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-development-only';
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET || 'fallback-refresh-secret';
+const JWT_SECRET = env.JWT_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || env.JWT_SECRET;
 
 // Access Token: Short-lived (e.g., 15m)
 export const signAccessToken = (payload: object): string => {

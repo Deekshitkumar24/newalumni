@@ -103,7 +103,20 @@ export async function POST(req: Request) {
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: (error as z.ZodError).issues }, { status: 400 });
         }
+
         console.error('Login error:', error);
+
+        // Check for specific DB errors (Postgres)
+        // 42P01: undefined_table
+        // 42703: undefined_column
+        if (error.code === '42P01' || error.code === '42703' || error.message?.includes('relation') || error.message?.includes('column')) {
+            console.error('CRITICAL: Database schema mismatch. Tables/Columns missing.');
+            return NextResponse.json({
+                error: 'System Error: Database schema not initialized. Please run migrations.',
+                code: 'DB_SCHEMA_MISSING'
+            }, { status: 500 });
+        }
+
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
