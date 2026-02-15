@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { getStudents, initializeData } from '@/lib/data/store';
+import { useAuth } from '@/hooks/useAuth';
 import { Student, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -12,25 +12,47 @@ import { Button } from "@/components/ui/button";
 export default function StudentProfilePage() {
     const params = useParams();
     const router = useRouter();
+    const { user: currentUser } = useAuth();
     const [student, setStudent] = useState<Student | null>(null);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        initializeData();
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (userStr) {
-            setCurrentUser(JSON.parse(userStr));
+        const fetchStudent = async () => {
+            try {
+                const res = await fetch(`/api/directory/${params.id}`);
+                if (!res.ok) {
+                    setStudent(null);
+                    return;
+                }
+                const data = await res.json();
+
+                if (data.role !== 'student') {
+                    // Handle case where ID exists but is not a student?
+                    // Or just display it (universal profile view?)
+                    // For now, assume this page is only for students.
+                    setStudent(null);
+                    return;
+                }
+
+                const mergedStudent: Student = {
+                    ...data,
+                    ...data.profile,
+                    name: data.fullName || data.name,
+                    skills: data.profile?.skills || [], // Ensure arrays
+                    interests: data.profile?.interests || []
+                };
+                setStudent(mergedStudent);
+
+            } catch (error) {
+                console.error("Failed to fetch student", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (params.id) {
+            fetchStudent();
         }
-
-        const allStudents = getStudents();
-        const found = allStudents.find(s => s.id === params.id);
-
-        // Simulate network delay
-        setTimeout(() => {
-            setStudent(found || null);
-            setLoading(false);
-        }, 300);
     }, [params.id]);
 
     if (loading) {
@@ -150,7 +172,7 @@ export default function StudentProfilePage() {
 
                     {/* Right Column */}
                     <div className="space-y-6">
-                         {!currentUser && (
+                        {!currentUser && (
                             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
                                 <p className="text-gray-600 text-sm mb-3">Login to connect with students.</p>
                                 <Link href="/login" className="text-[#800000] font-medium hover:underline">

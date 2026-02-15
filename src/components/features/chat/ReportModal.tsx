@@ -13,7 +13,7 @@ interface ReportModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (reason: string, description: string) => Promise<void>;
-    reportedUser: User | null;
+    reportedUser: Partial<User> | null;
 }
 
 export default function ReportModal({ isOpen, onClose, onSubmit, reportedUser }: ReportModalProps) {

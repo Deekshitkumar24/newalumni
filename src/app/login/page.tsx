@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authenticateUser, initializeData } from '@/lib/data/store';
+
+import { mutate } from 'swr';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,26 +21,56 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        // Initialize data if not already done
-        initializeData();
+        try {
+            // Attempt authentication via API
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
 
-        // Attempt authentication
-        const user = authenticateUser(formData.email, formData.password);
+            const data = await res.json();
 
-        if (user) {
-            // Store user in localStorage
-            localStorage.setItem('vjit_current_user', JSON.stringify(user));
+            if (!res.ok) {
+                // Specific error handling based on API codes
+                if (data.code === 'ACCOUNT_NOT_FOUND') {
+                    setError('No account found. Please register to continue.');
+                } else if (data.code === 'WRONG_PASSWORD') {
+                    setError('Incorrect password. Please try again.');
+                } else if (data.code === 'PENDING_APPROVAL') {
+                    setError('Your account is awaiting admin approval. You’ll be able to log in once approved.');
+                } else if (data.code === 'REJECTED') {
+                    setError('Your registration was not approved. Please contact the administrator.');
+                } else if (data.code === 'SUSPENDED') {
+                    setError('Your account has been suspended. Please contact the administrator.');
+                } else {
+                    setError(data.error || 'Login failed. Please try again.');
+                }
+                setLoading(false);
+                return;
+            }
+
+            // Success: Store user info via cookie (handled by API)
+            // Store minimal user info in localStorage for UI consistency if needed by other components
+            localStorage.setItem('vjit_current_user', JSON.stringify(data.user));
+
+            // Force SWR to revalidate the user state immediately
+            await mutate('/api/profile/me');
 
             // Dispatch custom event to notify Header component
             window.dispatchEvent(new CustomEvent('vjit_auth_change'));
 
             // Redirect based on role
-            switch (user.role) {
+            switch (data.user.role) {
                 case 'admin':
                     router.push('/dashboard/admin');
                     break;
@@ -52,8 +83,9 @@ export default function LoginPage() {
                 default:
                     router.push('/');
             }
-        } else {
-            setError('Invalid email or password. Please check your credentials or ensure your account is approved.');
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Something went wrong. Please try again.');
             setLoading(false);
         }
     };

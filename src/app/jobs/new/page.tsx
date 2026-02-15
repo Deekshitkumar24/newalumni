@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createJob, initializeData } from '@/lib/data/store';
+import { useAuth } from '@/hooks/useAuth';
 import { User } from '@/types';
+import { toast } from 'sonner';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function PostJobPage() {
     const router = useRouter();
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const { user: currentUser, isLoading: authLoading } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -30,20 +31,14 @@ export default function PostJobPage() {
     });
 
     useEffect(() => {
-        initializeData();
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            setCurrentUser(user);
-
-            // Redirect if not alumni
-            if (user.role !== 'alumni') {
-                router.push('/jobs');
+        if (!authLoading) {
+            if (!currentUser) {
+                router.push('/login');
+            } else if (currentUser.role !== 'alumni') {
+                router.push('/jobs'); // Or dashboard
             }
-        } else {
-            router.push('/login');
         }
-    }, [router]);
+    }, [currentUser, authLoading, router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -60,7 +55,7 @@ export default function PostJobPage() {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
@@ -75,34 +70,58 @@ export default function PostJobPage() {
                 return;
             }
 
-            const requirementsList = formData.requirements
-                .split('\n')
-                .filter(req => req.trim().length > 0);
+            // Append requirements to description if needed, or send as is if API supports it.
+            // My API currently takes title, company, location, type, description, applicationLink.
+            // It does NOT have a separate requirements field in schema (Job table).
+            // So I will append it to Description for now.
 
-            createJob({
-                title: formData.title,
-                company: formData.company,
-                location: formData.location || 'Remote',
-                type: formData.type as 'full-time' | 'part-time' | 'internship',
-                description: formData.description,
-                requirements: requirementsList,
-                applicationLink: formData.applicationLink,
-                postedBy: currentUser.id,
-                postedByName: currentUser.name
+            let finalDescription = formData.description;
+            if (formData.requirements.trim()) {
+                finalDescription += `\n\nRequirements:\n${formData.requirements}`;
+            }
+
+            const res = await fetch('/api/jobs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    title: formData.title,
+                    company: formData.company,
+                    location: formData.location || 'Remote',
+                    type: formData.type.replace('-', '_'), // full-time -> full_time
+                    description: finalDescription,
+                    applicationLink: formData.applicationLink,
+                })
             });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                let errMsg = errData.error;
+                if (Array.isArray(errMsg)) {
+                    errMsg = errMsg.map((err: any) => err.message).join('. ');
+                } else if (typeof errMsg === 'object') {
+                    errMsg = JSON.stringify(errMsg);
+                }
+                throw new Error(errMsg || 'Failed to post job');
+            }
+
+            toast.success("Job posted successfully! Pending approval.");
 
             // Redirect back to jobs list after delay
             setTimeout(() => {
-                router.push('/jobs');
+                router.push('/dashboard/alumni/jobs'); // Redirect to dashboard to see pending job?
             }, 1000);
 
-        } catch (err) {
-            setError('Failed to post job. Please try again.');
+        } catch (err: any) {
+            console.error(err);
+            const message = err?.message || 'Failed to post job. Please try again.';
+            setError(typeof message === 'string' ? message : 'An error occurred');
+        } finally {
             setLoading(false);
         }
     };
 
-    if (!currentUser || currentUser.role !== 'alumni') {
+    if (authLoading || !currentUser || currentUser.role !== 'alumni') {
         return <div className="p-8 text-center text-gray-500">Checking permissions...</div>;
     }
 
@@ -151,6 +170,7 @@ export default function PostJobPage() {
                                                 <SelectItem value="full-time">Full-Time</SelectItem>
                                                 <SelectItem value="part-time">Part-Time</SelectItem>
                                                 <SelectItem value="internship">Internship</SelectItem>
+                                                <SelectItem value="contract">Contract</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

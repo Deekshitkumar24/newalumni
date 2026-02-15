@@ -64,14 +64,21 @@ export interface Job {
   company: string;
   location: string;
   description: string;
-  requirements: string[];
-  type: 'full-time' | 'part-time' | 'internship';
+  type: 'full_time' | 'part_time' | 'internship'; // Updated enum values to match DB
+  status: 'open' | 'closed';
+  moderationStatus?: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  poster?: {
+    id: string;
+    fullName: string;
+    role: string;
+    profileImage?: string;
+  };
   applicationLink?: string;
-  postedBy: string;
-  postedByName: string;
-  postedAt: string;
-  isActive: boolean;
-  status: 'active' | 'closed' | 'pending' | 'rejected';
+  // Legacy fields (optional compatibility)
+  postedByName?: string;
+  postedAt?: string;
+  isActive?: boolean;
 }
 
 // Mentorship Types
@@ -99,12 +106,15 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  participants: string[];
+  participants: (string | Partial<User>)[];
   lastMessage: string;
   lastMessageAt: string;
   unreadCount: number;
   isGroup?: boolean;
   groupName?: string;
+  isBlocked?: boolean;
+  blockedReason?: string;
+  blockedSource?: string;
 }
 
 // Batch Discussion Types
@@ -132,8 +142,10 @@ export interface SliderImage {
   imageUrl: string;
   title: string;
   link?: string;
-  order: number;
+  linkUrl?: string; // Added field
+  displayOrder: number; // Renamed from order
   isActive: boolean;
+  createdAt?: string;
 }
 
 // Notice Types
@@ -141,9 +153,10 @@ export interface Notice {
   id: string;
   title: string;
   content: string;
-  date: string;
+
   type: 'general' | 'event' | 'news' | 'important';
   isActive: boolean;
+  createdAt: string;
 }
 
 // Gallery Types
@@ -151,8 +164,10 @@ export interface GalleryImage {
   id: string;
   title: string;
   imageUrl: string;
-  category: 'campus' | 'events' | 'reunion' | 'other';
-  date: string;
+  category: string; // Changed from strict union for flexibility
+  date: string; // Mapped from createdAt
+  isActive?: boolean;
+  userId?: string;
 }
 
 // Report Types

@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { getEventsPaginated, initializeData } from '@/lib/data/store';
 import { Event, User } from '@/types';
 import { Clock, MapPin } from 'lucide-react';
-
 
 const ITEMS_PER_PAGE = 6;
 
@@ -22,7 +20,6 @@ export default function DashboardEventsPage() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     useEffect(() => {
-        initializeData();
         const userStr = localStorage.getItem('vjit_current_user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -31,16 +28,35 @@ export default function DashboardEventsPage() {
 
     useEffect(() => {
         setLoading(true);
+
+        const fetchEvents = async () => {
+            try {
+                const queryParams = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: ITEMS_PER_PAGE.toString(),
+                    type: activeTab, // API supports 'type' for upcoming/past
+                });
+
+                const res = await fetch(`/api/events?${queryParams}`);
+                const data = await res.json();
+
+                if (data.data) {
+                    setEvents(data.data);
+                    if (data.meta) {
+                        setTotalItems(data.meta.total);
+                        setTotalPages(data.meta.totalPages);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch events', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Debounce slightly to avoid flicker on rapid tab switch or just call immediate
         const timer = setTimeout(() => {
-            const { data, total, totalPages } = getEventsPaginated(
-                currentPage,
-                ITEMS_PER_PAGE,
-                activeTab
-            );
-            setEvents(data);
-            setTotalItems(total);
-            setTotalPages(totalPages);
-            setLoading(false);
+            fetchEvents();
         }, 300);
 
         return () => clearTimeout(timer);
@@ -53,7 +69,6 @@ export default function DashboardEventsPage() {
 
     return (
         <div className="min-h-screen">
-
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-8 pb-4 border-b-2 border-[#800000]">
                     <div>
@@ -158,7 +173,7 @@ export default function DashboardEventsPage() {
                                                 </div>
                                             </div>
 
-                                            {activeTab === 'upcoming' && (
+                                            {activeTab === 'upcoming' && event.registrations && (
                                                 <div className="mt-2 pt-3 border-t border-gray-100 text-sm text-gray-500 flex items-center justify-between">
                                                     <span>{event.registrations.length} registered members</span>
                                                 </div>

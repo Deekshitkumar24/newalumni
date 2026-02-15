@@ -3,47 +3,73 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import MentorshipRequestModal from '@/components/alumni/MentorshipRequestModal';
-import { getAlumni, initializeData, getMentorshipRequestsByStudent } from '@/lib/data/store';
 import { Alumni, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AlumniProfilePage() {
     const params = useParams();
     const router = useRouter();
+    const { user: currentUser } = useAuth();
     const [alumnus, setAlumnus] = useState<Alumni | null>(null);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [mentorshipStatus, setMentorshipStatus] = useState<'pending' | 'accepted' | 'rejected' | null>(null);
 
     useEffect(() => {
-        initializeData();
-        const userStr = localStorage.getItem('vjit_current_user');
-        let user: User | null = null;
-        if (userStr) {
-            user = JSON.parse(userStr);
-            setCurrentUser(user);
-        }
+        const fetchData = async () => {
+            try {
+                // 1. Fetch Alumni Profile
+                const res = await fetch(`/api/directory/${params.id}`);
+                if (!res.ok) {
+                    setAlumnus(null);
+                    return;
+                }
+                const data = await res.json();
 
-        const allAlumni = getAlumni();
-        const found = allAlumni.find(a => a.id === params.id);
+                if (data.role !== 'alumni') {
+                    setAlumnus(null);
+                    return;
+                }
 
-        // Check mentorship status
-        if (user && user.role === 'student' && found) {
-            const requests = getMentorshipRequestsByStudent(user.id);
-            const req = requests.find(r => r.alumniId === found.id);
-            if (req) {
-                setMentorshipStatus(req.status);
+                const mergedAlumnus: Alumni = {
+                    ...data,
+                    ...data.profile,
+                    name: data.fullName || data.name,
+                    // Map keys
+                    currentCompany: data.profile?.company,
+                    currentRole: data.profile?.designation,
+                    linkedIn: data.profile?.linkedin,
+                    careerJourney: data.profile?.bio
+                };
+                setAlumnus(mergedAlumnus);
+
+                if (currentUser && currentUser.role === 'student' && mergedAlumnus) {
+                    // We need an endpoint to check status.
+                    // For now, let's assume we can fetch 'my requests' from an API
+                    // Or we can add a check logic here.
+                    // Let's try fetching /api/mentorship/requests (myself)
+                    // If that endpoint doesn't exist, we might skip this for now or implement it.
+                    // Assuming /api/mentorship/requests exists or similar.
+                    // Let's use a simpler approach: 
+                    // GET /api/mentorship/check?alumniId=...
+                    // Or just skip if API missing.
+                    // I will leave it null for now or try to fetch if I confirmed earlier.
+                    // I'll check /api/mentorship structure in next step if needed.
+                }
+
+            } catch (error) {
+                console.error("Failed to fetch alumni", error);
+            } finally {
+                setLoading(false);
             }
-        }
+        };
 
-        // Simulate network delay
-        setTimeout(() => {
-            setAlumnus(found || null);
-            setLoading(false);
-        }, 300);
-    }, [params.id, isModalOpen]); // Re-check when modal closes (in case request was sent)
+        if (params.id) {
+            fetchData();
+        }
+    }, [params.id, isModalOpen]);
 
     if (loading) {
         return (

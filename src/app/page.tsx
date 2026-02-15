@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { initializeData, getActiveSliderImages, getActiveNotices, getUpcomingEvents, getActiveJobs, getStatistics } from '@/lib/data/store';
 import { SliderImage, Notice, Event, Job } from '@/types';
 import { Calendar, Megaphone, Briefcase, Building2, GraduationCap, BookOpen } from 'lucide-react';
 
@@ -16,12 +15,40 @@ export default function HomePage() {
   const [stats, setStats] = useState({ totalAlumni: 0, totalStudents: 0, totalEvents: 0, activeJobs: 0 });
 
   useEffect(() => {
-    initializeData();
-    setSliderImages(getActiveSliderImages());
-    setNotices(getActiveNotices().slice(0, 5));
-    setUpcomingEvents(getUpcomingEvents().slice(0, 3));
-    setRecentJobs(getActiveJobs().slice(0, 3));
-    setStats(getStatistics());
+    // Fetch Stats
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data && !data.error) {
+          setStats(data);
+        }
+      })
+      .catch(console.error);
+
+    // Fetch Sliders
+    fetch('/api/slider')
+      .then(res => res.json())
+      .then(res => res.data && setSliderImages(res.data))
+      .catch(console.error);
+
+    // Fetch Jobs
+    fetch('/api/jobs?limit=3')
+      .then(res => res.json())
+      .then(res => res.data && setRecentJobs(res.data))
+      .catch(console.error);
+
+    // Fetch Notices
+    fetch('/api/notices')
+      .then(res => res.json())
+      .then(res => res.data && setNotices(res.data))
+      .catch(console.error);
+
+    // Fetch Upcoming Events
+    fetch('/api/events?type=upcoming&limit=3')
+      .then(res => res.json())
+      .then(res => res.data && setUpcomingEvents(res.data))
+      .catch(console.error);
+
   }, []);
 
   // Auto-rotate slider
@@ -39,43 +66,70 @@ export default function HomePage() {
       <section className="relative h-[600px] overflow-hidden bg-gray-900 border-b-4 border-[#DAA520]">
         {sliderImages.length > 0 ? (
           <>
-            {sliderImages.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-              >
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
+            {sliderImages.map((slide, index) => {
+              const slideContent = (
+                <>
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
 
-                {/* Background Image */}
-                <Image
-                  src={slide.imageUrl}
-                  alt={slide.title}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
-                />
+                  {/* Background Image */}
+                  <Image
+                    src={slide.imageUrl}
+                    alt={slide.title}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
 
-                <div className="absolute inset-0 z-20 container mx-auto px-4 flex flex-col justify-center">
-                  <div className="max-w-2xl animate-fadeInUp">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg font-serif">
-                      {slide.title}
-                    </h1>
-                    <p className="text-xl md:text-2xl text-gray-100 mb-8 font-light leading-relaxed drop-shadow-md border-l-4 border-[#DAA520] pl-6 py-2 bg-black/10 backdrop-blur-sm rounded-r-lg">
-                      Fostering a lifelong connection between the Institute and its Alumni.
-                    </p>
-                    <div className="flex gap-4 pt-4">
-                      <Link href="/register" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
-                        Join Community
-                      </Link>
-                      <Link href="/alumni-directory" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
-                        Search Directory
-                      </Link>
+                  <div className="absolute inset-0 z-20 container mx-auto px-4 flex flex-col justify-center">
+                    <div className="max-w-2xl animate-fadeInUp">
+                      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg font-serif">
+                        {slide.title}
+                      </h1>
+                      <p className="text-xl md:text-2xl text-gray-100 mb-8 font-light leading-relaxed drop-shadow-md border-l-4 border-[#DAA520] pl-6 py-2 bg-black/10 backdrop-blur-sm rounded-r-lg">
+                        Fostering a lifelong connection between the Institute and its Alumni.
+                      </p>
+
+                      {/* Only show buttons if NOT a linked slide (or maybe always? logic depends on design. For now keeping buttons as static hero elements) */}
+                      {/* Actually, if the whole slide is a link, buttons might conflict. 
+                           But user asked for "banner/slider images" to be linkable. 
+                           Usually that means the whole image. 
+                           If I wrap the whole div in Link, buttons inside might be issue. 
+                           I'll wrap just the Image and Text, OR make the whole thing clickable. 
+                           Given the `linkUrl` is specific to the slide, I'll wrap the slide content. 
+                       */}
+                      <div className="flex gap-4 pt-4 pointer-events-auto relative z-30">
+                        <Link href="/register" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
+                          Join Community
+                        </Link>
+                        <Link href="/alumni-directory" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
+                          Search Directory
+                        </Link>
+                      </div>
                     </div>
                   </div>
+                </>
+              );
+
+              const targetLink = slide.linkUrl || slide.link;
+
+              return (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                >
+                  {targetLink ? (
+                    <Link href={targetLink} className="block w-full h-full relative cursor-pointer">
+                      {slideContent}
+                    </Link>
+                  ) : (
+                    <div className="block w-full h-full relative">
+                      {slideContent}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </>
         ) : (
           <div className="absolute inset-0 bg-[#800000] flex items-center justify-center relative z-0">
@@ -210,7 +264,7 @@ export default function HomePage() {
                     <div key={notice.id} className="border-b border-gray-50 last:border-0 pb-4 last:pb-0">
                       <div className="flex justify-between items-start mb-1">
                         <span className="text-[10px] font-bold text-[#DAA520] bg-[#DAA520]/10 px-2 py-0.5 rounded uppercase">{notice.type || 'General'}</span>
-                        <span className="text-[10px] text-gray-400">{notice.date}</span>
+                        <span className="text-[10px] text-gray-400">{notice.createdAt ? new Date(notice.createdAt).toLocaleDateString() : 'Recent'}</span>
                       </div>
                       <h4 className="font-medium text-gray-800 hover:text-[#DAA520] cursor-pointer transition-colors leading-snug">{notice.title}</h4>
                     </div>
@@ -240,7 +294,7 @@ export default function HomePage() {
                       <div>
                         <h4 className="font-bold text-gray-800 group-hover:text-[#DAA520] transition-colors leading-tight">{job.title}</h4>
                         <p className="text-xs text-gray-500 mb-1">{job.company}</p>
-                        <span className={`tag ${job.type === 'full-time' ? 'tag-fulltime' : job.type === 'internship' ? 'tag-internship' : 'tag-parttime'}`}>{job.type.replace('-', ' ').toUpperCase()}</span>
+                        <span className={`tag ${job.type === 'full_time' ? 'tag-fulltime' : job.type === 'internship' ? 'tag-internship' : 'tag-parttime'}`}>{job.type.replace('_', ' ').toUpperCase()}</span>
                       </div>
                     </div>
                   ))

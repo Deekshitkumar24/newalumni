@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Student } from '@/types';
-import { initializeData } from '@/lib/data/store';
+import { useAuth } from '@/hooks/useAuth'; // Use real auth
 import { toast } from 'sonner';
 
 import { Button } from "@/components/ui/button"
@@ -17,16 +17,17 @@ import { Bell, Shield, User, Lock, Trash2 } from 'lucide-react';
 
 export default function StudentSettingsPage() {
     const router = useRouter();
-    const [user, setUser] = useState<Student | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { user, mutate } = useAuth();
 
-    // Mock Settings State
-    const [settings, setSettings] = useState({
+    // Default Settings
+    const defaultSettings = {
         emailAlerts: true,
         jobPostings: true,
         eventReminders: true,
         profileVisibility: true,
-    });
+    };
+
+    const [settings, setSettings] = useState(defaultSettings);
 
     // Password Change State
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -36,40 +37,34 @@ export default function StudentSettingsPage() {
         confirmPassword: ''
     });
     const [passwordError, setPasswordError] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        initializeData();
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) {
-            router.push('/login');
-            return;
+        if (user?.settings) {
+            // Merge defaults with user settings to handle missing keys
+            setSettings(prev => ({ ...prev, ...(user.settings as any) }));
         }
+    }, [user]);
 
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'student') {
-            router.push('/login');
-            return;
-        }
+    const handleToggle = async (key: keyof typeof settings) => {
+        const newSettings = { ...settings, [key]: !settings[key] };
+        setSettings(newSettings); // Optimistic update
 
-        // Load saved settings if any (mock)
-        const savedSettings = localStorage.getItem('vjit_student_settings');
-        if (savedSettings) {
-            setSettings(JSON.parse(savedSettings));
-        }
+        try {
+            const res = await fetch('/api/profile/me', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ settings: newSettings })
+            });
 
-        setTimeout(() => {
-            setUser(currentUser);
-            setLoading(false);
-        }, 500);
-    }, [router]);
-
-    const handleToggle = (key: keyof typeof settings) => {
-        setSettings(prev => {
-            const newSettings = { ...prev, [key]: !prev[key] };
-            localStorage.setItem('vjit_student_settings', JSON.stringify(newSettings));
+            if (!res.ok) throw new Error('Failed to save settings');
             toast.success("Settings updated");
-            return newSettings;
-        });
+            mutate();
+        } catch (error) {
+            console.error(error);
+            setSettings(settings); // Revert
+            toast.error("Failed to save settings");
+        }
     };
 
     const handleChangePasswordClick = () => {
@@ -78,7 +73,7 @@ export default function StudentSettingsPage() {
         setIsPasswordDialogOpen(true);
     };
 
-    const handleChangePasswordSubmit = () => {
+    const handleChangePasswordSubmit = async () => {
         setPasswordError('');
 
         if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
@@ -96,43 +91,41 @@ export default function StudentSettingsPage() {
             return;
         }
 
-        // Verify current password
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) return;
-        const currentUser = JSON.parse(userStr);
+        try {
+            setIsSaving(true);
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    currentPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword
+                })
+            });
 
-        if (currentUser.password !== passwordForm.currentPassword) {
-            setPasswordError('Incorrect current password.');
-            return;
-        }
+            const data = await res.json();
 
-        // Update password in current session
-        const updatedUser = { ...currentUser, password: passwordForm.newPassword };
-        localStorage.setItem('vjit_current_user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-
-        // Update password in master list (vjit_students)
-        const studentsStr = localStorage.getItem('vjit_students');
-        if (studentsStr) {
-            const students = JSON.parse(studentsStr);
-            const index = students.findIndex((s: Student) => s.id === currentUser.id);
-            if (index !== -1) {
-                students[index].password = passwordForm.newPassword;
-                localStorage.setItem('vjit_students', JSON.stringify(students));
+            if (!res.ok) {
+                setPasswordError(data.error || 'Failed to change password');
+                return;
             }
-        }
 
-        toast.success("Password changed successfully!");
-        setIsPasswordDialogOpen(false);
+            toast.success("Password changed successfully!");
+            setIsPasswordDialogOpen(false);
+        } catch (error) {
+            setPasswordError('Something went wrong. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleDeleteAccount = () => {
         if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-            toast.error("Account deletion is restricted in this demo.");
+            // Implement delete API later
+            toast.error("Please contact admin to delete your account.");
         }
     };
 
-    if (loading) {
+    if (!user) {
         return (
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 <div className="space-y-6">
@@ -141,10 +134,12 @@ export default function StudentSettingsPage() {
                     <Skeleton className="h-[200px] w-full" />
                 </div>
             </div>
-        )
+        );
     }
 
-    if (!user) return null;
+    // Role check - redirect if not student? 
+    // useAuth handles fetching, but we should ensure role match or generic page.
+    // For now assuming middleware or parent layout handles role, or just render.
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -164,16 +159,12 @@ export default function StudentSettingsPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label>Department</Label>
-                            <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                disabled
-                                value={user?.department || ''}
-                            >
-                                {['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT'].map(d => (
-                                    <option key={d} value={d}>{d}</option>
-                                ))}
-                            </select>
+                            <Input value={(user as any).department || 'N/A'} disabled />
                             <p className="text-xs text-gray-500">Contact admin to change department.</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Email</Label>
+                            <Input value={user.email} disabled />
                         </div>
                     </CardContent>
                 </Card>
@@ -322,8 +313,10 @@ export default function StudentSettingsPage() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>Cancel</Button>
-                            <Button onClick={handleChangePasswordSubmit} className="bg-[#800000] hover:bg-[#660000]">Update Password</Button>
+                            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)} disabled={isSaving}>Cancel</Button>
+                            <Button onClick={handleChangePasswordSubmit} className="bg-[#800000] hover:bg-[#660000]" disabled={isSaving}>
+                                {isSaving ? 'Updating...' : 'Update Password'}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

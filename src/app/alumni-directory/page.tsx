@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Pagination from '@/components/ui/Pagination';
 import { RowSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { getAlumniPaginated, initializeData } from '@/lib/data/store';
 import { Alumni, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search } from 'lucide-react';
@@ -39,7 +38,6 @@ export default function AlumniDirectoryPage() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     useEffect(() => {
-        initializeData();
         const userStr = localStorage.getItem('vjit_current_user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -48,19 +46,37 @@ export default function AlumniDirectoryPage() {
 
     useEffect(() => {
         setLoading(true);
-        // Simulate network delay for "Manual Quality" feel
+
+        const fetchAlumni = async () => {
+            try {
+                const queryParams = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: ITEMS_PER_PAGE.toString(),
+                    role: 'alumni', // Explicitly fetch alumni
+                });
+
+                if (searchName) queryParams.append('query', searchName);
+                if (selectedDepartment !== 'All Departments') queryParams.append('department', selectedDepartment);
+                if (selectedYear !== 'All Years') queryParams.append('year', selectedYear);
+
+                const res = await fetch(`/api/directory?${queryParams}`);
+                const data = await res.json();
+
+                if (data.data) {
+                    setAlumni(data.data);
+                    setTotalItems(data.meta.total);
+                    setTotalPages(data.meta.totalPages);
+                }
+            } catch (error) {
+                console.error('Failed to fetch alumni directory', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Debounce search slightly
         const timer = setTimeout(() => {
-            const { data, total, totalPages } = getAlumniPaginated(
-                currentPage,
-                ITEMS_PER_PAGE,
-                searchName,
-                selectedDepartment,
-                selectedYear
-            );
-            setAlumni(data);
-            setTotalItems(total);
-            setTotalPages(totalPages);
-            setLoading(false);
+            fetchAlumni();
         }, 300);
 
         return () => clearTimeout(timer);
@@ -170,7 +186,7 @@ export default function AlumniDirectoryPage() {
                                                 <Avatar className="h-10 w-10">
                                                     <AvatarImage src={alumnus.profileImage || ""} alt={alumnus.name} />
                                                     <AvatarFallback className="bg-[#800000] text-white">
-                                                        {alumnus.name.charAt(0).toUpperCase()}
+                                                        {alumnus.name ? alumnus.name.charAt(0).toUpperCase() : '?'}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Notice } from '@/types';
-import { initializeData, getNotices, createNotice, deleteNotice } from '@/lib/data/store';
+import { toast } from 'sonner';
 import {
     Dialog,
     DialogContent,
@@ -32,41 +32,71 @@ export default function AdminNoticesPage() {
     });
 
     useEffect(() => {
-        initializeData();
-
         const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) {
+        if (!userStr || JSON.parse(userStr).role !== 'admin') {
             router.push('/login');
             return;
         }
 
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'admin') {
-            router.push('/login');
-            return;
-        }
-
-        setNotices(getNotices());
+        fetchNotices();
     }, [router]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        createNotice({
-            title: formData.title,
-            content: formData.content,
-            type: formData.type
-        });
-
-        setNotices(getNotices());
-        setShowForm(false);
-        setFormData({ title: '', content: '', type: 'general' });
+    const fetchNotices = async () => {
+        try {
+            const res = await fetch('/api/notices?admin=true');
+            const json = await res.json();
+            if (json.data && Array.isArray(json.data)) {
+                setNotices(json.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch notices', error);
+        }
     };
 
-    const handleDelete = (id: string) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch('/api/notices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    title: formData.title,
+                    content: formData.content,
+                    type: formData.type
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                let errMsg = errorData.error;
+                if (Array.isArray(errMsg)) {
+                    errMsg = errMsg.map((err: any) => err.message).join('. ');
+                }
+                throw new Error(errMsg || 'Failed to post notice');
+            }
+
+            fetchNotices();
+            setShowForm(false);
+            setFormData({ title: '', content: '', type: 'general' });
+            toast.success("Notice posted successfully!");
+        } catch (error: any) {
+            console.error('Failed to post notice', error);
+            toast.error(error.message || 'Failed to post notice');
+        }
+    };
+
+    const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this notice?')) {
-            deleteNotice(id);
-            setNotices(getNotices());
+            try {
+                await fetch(`/api/notices/${id}`, { method: 'DELETE', credentials: 'include' });
+                fetchNotices();
+                toast.success("Notice deleted.");
+            } catch (error) {
+                console.error('Failed to delete notice', error);
+                toast.error('Failed to delete notice');
+            }
         }
     };
 
@@ -166,7 +196,7 @@ export default function AdminNoticesPage() {
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">{notice.content}</p>
                                     <div className="text-xs text-gray-400">
-                                        Posted on: {notice.date}
+                                        Posted on: {new Date((notice as any).createdAt).toLocaleDateString()}
                                     </div>
                                 </div>
                                 <button

@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { GalleryImage } from '@/types';
-import { initializeData, getGalleryImages, addGalleryImage, deleteGalleryImage } from '@/lib/data/store';
+
 import {
     Dialog,
     DialogContent,
@@ -18,54 +17,115 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from 'sonner';
 
 
 export default function AdminGalleryPage() {
     const router = useRouter();
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({
-        title: '',
-        imageUrl: '', // Manually entering URL for now
-        category: 'events' as const
-    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        initializeData();
+    const [title, setTitle] = useState('');
+    const [category, setCategory] = useState<'events' | 'campus' | 'reunion' | 'other'>('events');
+    const [file, setFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string>('');
 
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) {
-            router.push('/login');
-            return;
+    const fetchGallery = async () => {
+        try {
+            const res = await fetch('/api/admin/gallery');
+            if (!res.ok) throw new Error('Failed to fetch');
+            const data = await res.json();
+            if (data.data) {
+                // Map API response
+                const mappedImages = data.data.map((img: any) => ({
+                    ...img,
+                    date: img.createdAt ? new Date(img.createdAt).toISOString().split('T')[0] : 'Just now',
+                    category: img.category || 'other'
+                }));
+                setImages(mappedImages);
+            }
+        } catch (error) {
+            console.error('Failed to fetch gallery', error);
         }
-
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'admin') {
-            router.push('/login');
-            return;
-        }
-
-        setImages(getGalleryImages());
-    }, [router]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        addGalleryImage({
-            title: formData.title,
-            imageUrl: formData.imageUrl,
-            category: formData.category
-        });
-
-        setImages(getGalleryImages());
-        setShowForm(false);
-        setFormData({ title: '', imageUrl: '', category: 'events' });
     };
 
-    const handleDelete = (id: string) => {
+    useEffect(() => {
+        fetchGallery();
+    }, []);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            if (selectedFile.size > 5 * 1024 * 1024) {
+                toast.error('File too large (Max 5MB)');
+                return;
+            }
+            setFile(selectedFile);
+            setPreviewUrl(URL.createObjectURL(selectedFile));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+
+            if (file) {
+                formData.append('file', file);
+            }
+
+            // POST only for now (Creation)
+            if (!file) {
+                toast.error('Image file is required');
+                setIsSubmitting(false);
+                return;
+            }
+
+            const res = await fetch('/api/admin/gallery', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Upload failed');
+            }
+
+            toast.success('Photo added');
+            fetchGallery();
+            resetForm();
+        } catch (error: any) {
+            console.error('Failed to add gallery image', error);
+            toast.error(error.message || 'Failed to add photo');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const resetForm = () => {
+        setShowForm(false);
+        setTitle('');
+        setCategory('events');
+        setFile(null);
+        setPreviewUrl('');
+        setIsSubmitting(false);
+    };
+
+    const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this image?')) {
-            deleteGalleryImage(id);
-            setImages(getGalleryImages());
+            try {
+                await fetch(`/api/admin/gallery/${id}`, { method: 'DELETE' });
+                toast.success('Image deleted');
+                fetchGallery();
+            } catch (error) {
+                console.error('Failed to delete gallery image', error);
+                toast.error('Failed to delete image');
+            }
         }
     };
 
@@ -75,7 +135,7 @@ export default function AdminGalleryPage() {
                 <h1 className="text-3xl font-bold text-[#1a1a2e]">Gallery Management</h1>
                 <Dialog open={showForm} onOpenChange={setShowForm}>
                     <DialogTrigger asChild>
-                        <Button className="bg-[#800000] text-white hover:bg-[#660000]">
+                        <Button onClick={resetForm} className="bg-[#800000] text-white hover:bg-[#660000]">
                             + Add Photo
                         </Button>
                     </DialogTrigger>
@@ -83,7 +143,7 @@ export default function AdminGalleryPage() {
                         <DialogHeader>
                             <DialogTitle>Add New Photo</DialogTitle>
                             <DialogDescription>
-                                Add a photo to the alumni gallery.
+                                Upload photos to the gallery. Max 5MB.
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -91,18 +151,19 @@ export default function AdminGalleryPage() {
                                 <Label htmlFor="title">Title/Caption <span className="text-red-500">*</span></Label>
                                 <Input
                                     id="title"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g., Alumni Meet 2024 Group Photo"
                                     required
+                                    autoFocus
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="category">Category</Label>
                                 <Select
-                                    value={formData.category}
-                                    onValueChange={(val) => setFormData({ ...formData, category: val as any })}
+                                    value={category}
+                                    onValueChange={(val) => setCategory(val as any)}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select category" />
@@ -117,23 +178,32 @@ export default function AdminGalleryPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="imageUrl">Image URL <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="file">Image File <span className="text-red-500">*</span></Label>
                                 <Input
-                                    id="imageUrl"
-                                    type="url"
-                                    value={formData.imageUrl}
-                                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                    placeholder="https://example.com/photo.jpg"
+                                    id="file"
+                                    type="file"
+                                    accept="image/png, image/jpeg, image/webp"
+                                    onChange={handleFileChange}
                                     required
                                 />
+                                {previewUrl && (
+                                    <div className="mt-2 relative w-full h-40 bg-gray-100 rounded-md overflow-hidden border">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={previewUrl}
+                                            alt="Preview"
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                                <Button type="button" variant="outline" onClick={resetForm}>
                                     Cancel
                                 </Button>
-                                <Button type="submit" className="bg-[#800000] hover:bg-[#660000] text-white">
-                                    Add Photo
+                                <Button type="submit" disabled={isSubmitting} className="bg-[#800000] hover:bg-[#660000] text-white">
+                                    {isSubmitting ? 'Uploading...' : 'Add Photo'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -142,11 +212,6 @@ export default function AdminGalleryPage() {
             </div>
 
             <div className="container mx-auto px-4 py-8">
-                {/* Helper Note */}
-                <div className="bg-blue-50 border border-blue-200 p-4 mb-6 text-sm text-blue-800">
-                    <strong>Note:</strong> Since actual file upload requires backend storage, please provide direct image URLs (e.g., from Unsplash or other hosting) for this demo.
-                </div>
-
                 {/* Gallery Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {images.map(image => (
@@ -168,7 +233,7 @@ export default function AdminGalleryPage() {
 
                                 <button
                                     onClick={() => handleDelete(image.id)}
-                                    className="w-full text-center text-xs border border-red-500 text-red-500 py-1 hover:bg-red-500 hover:text-white"
+                                    className="w-full text-center text-xs border border-red-500 text-red-500 py-1 hover:bg-red-500 hover:text-white transition-colors"
                                 >
                                     Delete
                                 </button>
@@ -178,7 +243,7 @@ export default function AdminGalleryPage() {
 
                     {images.length === 0 && !showForm && (
                         <div className="col-span-full py-10 text-center text-gray-500 bg-white border border-gray-200">
-                            No gallery images found.
+                            No gallery images found. Upload one to get started.
                         </div>
                     )}
                 </div>

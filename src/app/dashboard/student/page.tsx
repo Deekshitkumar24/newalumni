@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Student } from '@/types';
-import { initializeData, getUpcomingEvents, getMentorshipRequestsByStudent, getStudentById } from '@/lib/data/store';
+import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function StudentDashboard() {
     const router = useRouter();
-    const [user, setUser] = useState<Student | null>(null);
+    const { user, isLoading } = useAuth();
     const [stats, setStats] = useState({
         upcomingEvents: 0,
         pendingRequests: 0,
@@ -17,51 +17,45 @@ export default function StudentDashboard() {
     });
 
     useEffect(() => {
-        initializeData();
+        if (isLoading) return;
 
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) {
+        if (!user) {
             router.push('/login');
             return;
         }
 
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'student') {
-            router.push('/login');
+        if (user.role !== 'student') {
+            router.push('/dashboard');
             return;
         }
 
-        // Verify with latest data from store to check for suspension/status changes
-        const freshUser = getStudentById(currentUser.id);
+        const fetchDashboardData = async () => {
+            try {
+                const response = await fetch('/api/dashboard/student');
+                if (response.ok) {
+                    const data = await response.json();
+                    setStats(data.stats);
+                } else {
+                    console.error('Failed to fetch dashboard stats');
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            }
+        };
 
-        if (!freshUser || freshUser.status !== 'approved') {
-            localStorage.removeItem('vjit_current_user');
-            router.push('/login?error=access_revoked');
-            return;
-        }
-
-        setUser(freshUser);
-
-        // Get stats
-        const events = getUpcomingEvents();
-        const requests = getMentorshipRequestsByStudent(freshUser.id);
-
-        setStats({
-            upcomingEvents: events.length,
-            pendingRequests: requests.filter(r => r.status === 'pending').length,
-            acceptedMentors: requests.filter(r => r.status === 'accepted').length
-        });
-    }, [router]);
+        fetchDashboardData();
+    }, [user, isLoading, router]);
 
     const handleLogout = () => {
         localStorage.removeItem('vjit_current_user');
         window.location.href = '/';
     };
 
-    if (!user) {
+    if (isLoading || !user) {
         return (
             <div className="container mx-auto px-4 py-10 text-center">
-                <p>Loading...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#800000] mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading dashboard...</p>
             </div>
         );
     }

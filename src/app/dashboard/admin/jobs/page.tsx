@@ -5,7 +5,8 @@ import { CheckCircle2, Briefcase } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Job, Admin } from '@/types';
-import { initializeData, getActiveJobs, getPendingJobs, deleteJob, createJob, updateJobStatus } from '@/lib/data/store';
+
+// removed other imports
 import EmptyState from '@/components/ui/EmptyState';
 import { toast } from 'sonner';
 
@@ -43,9 +44,29 @@ export default function AdminJobsPage() {
         title: '', company: '', location: '', type: 'full-time', description: '', requirements: '', applicationLink: ''
     });
 
-    useEffect(() => {
-        initializeData();
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            // Fetch Pending Jobs (Admin Route)
+            const pendingRes = await fetch('/api/admin/jobs');
+            const pendingData = await pendingRes.json();
+            if (pendingData.data) setPendingJobs(pendingData.data);
 
+            // Fetch Active Jobs (Public Route - returns open & approved)
+            // Note: Admin might want to see closed jobs too, but public API filters them.
+            // For now, this lists "Active Listings".
+            const activeRes = await fetch('/api/jobs?limit=50');
+            const activeData = await activeRes.json();
+            if (activeData.data) setActiveJobs(activeData.data);
+
+        } catch (error) {
+            console.error('Failed to fetch jobs', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         const userStr = localStorage.getItem('vjit_current_user');
         if (!userStr) {
             router.push('/login');
@@ -59,59 +80,99 @@ export default function AdminJobsPage() {
         }
 
         setUser(currentUser);
-        setLoading(true);
-
-        setTimeout(() => {
-            setActiveJobs(getActiveJobs());
-            setPendingJobs(getPendingJobs());
-            setLoading(false);
-        }, 500);
+        fetchData();
     }, [router, refreshKey]);
 
     // Handlers
-    const handleStatusChange = (jobId: string, status: 'active' | 'rejected' | 'closed') => {
+    const handleStatusChange = async (jobId: string, status: 'active' | 'rejected' | 'closed') => {
         if (!confirm(`Are you sure you want to change status to: ${status.toUpperCase()}?`)) return;
-        updateJobStatus(jobId, status);
-        setRefreshKey(k => k + 1);
-        toast.success(`Job status updated to ${status}`);
+
+        try {
+            if (status === 'active' || status === 'rejected') {
+                // Moderation Action (Approve/Reject)
+                // Map 'active' to 'approved' for moderationStatus
+                const moderationStatus = status === 'active' ? 'approved' : 'rejected';
+                await fetch(`/api/admin/jobs/${jobId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ moderationStatus })
+                });
+            } else if (status === 'closed') {
+                // Lifecycle Action (Close)
+                await fetch(`/api/jobs/${jobId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'closed' })
+                });
+            }
+
+            setRefreshKey(k => k + 1);
+            toast.success(`Job status updated to ${status}`);
+        } catch (error) {
+            console.error('Failed to update status', error);
+            toast.error('Failed to update status');
+        }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to PERMANENTLY delete this job posting?')) return;
-        deleteJob(id);
-        setRefreshKey(k => k + 1);
-        toast.success("Job posting deleted.");
+        try {
+            await fetch(`/api/jobs/${id}`, { method: 'DELETE' });
+            setRefreshKey(k => k + 1);
+            toast.success("Job posting deleted.");
+        } catch (error) {
+            console.error('Failed to delete job', error);
+            toast.error('Failed to delete job');
+        }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
 
-        createJob({
-            title: formData.title,
-            company: formData.company || 'Admin Posted',
-            location: formData.location,
-            description: formData.description,
-            requirements: formData.requirements.split('\n').filter(r => r.trim()),
-            type: formData.type as any,
-            applicationLink: formData.applicationLink || undefined,
-            postedBy: user.id,
-            postedByName: user.name + ' (Admin)',
-            status: 'active' // Admin posts are auto-active
-        });
+        try {
+            const res = await fetch('/api/jobs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: formData.title,
+                    company: formData.company || 'Admin Posted',
+                    location: formData.location,
+                    description: formData.description + (formData.requirements ? '\n\nRequirements:\n' + formData.requirements : ''),
+                    type: formData.type.replace('-', '_'), // Map full-time to full_time
+                    // API doesn't take requirements array directly in my simple schema, so appending to description or ignoring.
+                    // Actually my API schema doesn't have requirements field.
+                    // I'll append to description for now to persist it.
+                })
+            });
 
-        setRefreshKey(k => k + 1);
-        setShowForm(false);
-        setFormData({
-            title: '',
-            company: '',
-            location: '',
-            description: '',
-            requirements: '',
-            type: 'full-time',
-            applicationLink: ''
-        });
-        toast.success("Job posted successfully!");
+            if (!res.ok) {
+                const errorData = await res.json();
+                let errMsg = errorData.error;
+                if (Array.isArray(errMsg)) {
+                    errMsg = errMsg.map((err: any) => err.message).join('. ');
+                }
+                throw new Error(errMsg || 'Failed to post job');
+            }
+
+            setRefreshKey(k => k + 1);
+            setShowForm(false);
+            setFormData({
+                title: '',
+                company: '',
+                location: '',
+                description: '',
+                requirements: '',
+                type: 'full-time',
+                applicationLink: ''
+            });
+            toast.success("Job posted successfully!");
+        } catch (error: any) {
+            console.error('Failed to post job', error);
+            const message = error?.message || 'Failed to post job';
+            toast.error(typeof message === 'string' ? message : 'Failed to post job (Invalid Error Format)');
+        }
     };
 
     return (
@@ -272,7 +333,7 @@ export default function AdminJobsPage() {
                                                                     )}
                                                                 </div>
                                                                 <div className="text-xs text-gray-400 mb-2">
-                                                                    Posted by: <span className="text-gray-600 font-medium">{job.postedByName}</span> • {new Date(job.postedAt).toLocaleDateString()}
+                                                                    Posted by: <span className="text-gray-600 font-medium">{job.postedByName || job.poster?.fullName}</span> • {new Date(job.postedAt || job.createdAt).toLocaleDateString()}
                                                                 </div>
                                                                 <p className="text-gray-600 line-clamp-2 text-sm">{job.description}</p>
                                                             </div>

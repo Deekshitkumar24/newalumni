@@ -6,7 +6,6 @@ import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { GalleryImage } from '@/types';
-import { initializeData, getGalleryPaginated } from '@/lib/data/store';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -18,18 +17,43 @@ export default function GalleryPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        initializeData();
+        // initializeData(); // Not needed if we fetch from API
     }, []);
 
     useEffect(() => {
         setLoading(true);
-        const timer = setTimeout(() => {
-            const { data, total, totalPages } = getGalleryPaginated(currentPage, ITEMS_PER_PAGE, filter);
-            setImages(data);
-            setTotalPages(totalPages);
-            setLoading(false);
-        }, 300);
-        return () => clearTimeout(timer);
+        const fetchImages = async () => {
+            try {
+                let url = '/api/gallery';
+                if (filter !== 'all') {
+                    url += `?category=${encodeURIComponent(filter)}`;
+                }
+                const res = await fetch(url);
+                const json = await res.json();
+                const data = json.data || [];
+
+                if (Array.isArray(data)) {
+                    // Client-side pagination
+                    const total = data.length;
+                    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+                    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+                    const paginatedData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE).map((img: any) => ({
+                        ...img,
+                        date: img.createdAt ? new Date(img.createdAt).toISOString().split('T')[0] : 'Just now', // Map/Format date
+                        category: img.category || 'General'
+                    }));
+
+                    setImages(paginatedData);
+                    setTotalPages(totalPages);
+                }
+            } catch (err) {
+                console.error('Failed to fetch gallery:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchImages();
     }, [currentPage, filter]);
 
     const handleFilterChange = (newFilter: string) => {

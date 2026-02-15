@@ -29,19 +29,15 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from '@/hooks/useAuth';
 
-interface SidebarProps {
-    user: any;
-}
-
-export default function Sidebar({ user }: SidebarProps) {
+export default function Sidebar() {
+    const { user, mutate } = useAuth();
     const pathname = usePathname();
-    // Persist collapsed state if possible, default to false (expanded)
     const [collapsed, setCollapsed] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // Check local storage for preference
         const savedState = localStorage.getItem('vjit_sidebar_collapsed');
 
         const handleResize = () => {
@@ -53,14 +49,12 @@ export default function Sidebar({ user }: SidebarProps) {
                 if (savedState) {
                     setCollapsed(savedState === 'true');
                 } else {
-                    setCollapsed(false); // Default to expanded on desktop if no saved state
+                    setCollapsed(false);
                 }
             }
         };
 
-        // Initial check
         handleResize();
-
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -71,10 +65,19 @@ export default function Sidebar({ user }: SidebarProps) {
         localStorage.setItem('vjit_sidebar_collapsed', String(newState));
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('vjit_current_user');
-        window.dispatchEvent(new CustomEvent('vjit_auth_change'));
-        window.location.href = '/';
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            localStorage.removeItem('vjit_current_user');
+            await mutate();
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('Logout failed', error);
+            window.location.href = '/login';
+        }
     };
 
     const isActive = (path: string) => pathname === path;
@@ -112,10 +115,12 @@ export default function Sidebar({ user }: SidebarProps) {
     ];
 
     let menuItems: any[] = [];
-
     if (user?.role === 'student') menuItems = studentMenu;
     else if (user?.role === 'alumni') menuItems = alumniMenu;
     else if (user?.role === 'admin') menuItems = adminMenu;
+
+    // Optional: Return simplified skeleton if user is loading? 
+    // For now, it will just render empty or default until user loads.
 
     return (
         <TooltipProvider>
@@ -123,8 +128,6 @@ export default function Sidebar({ user }: SidebarProps) {
                 className={cn(
                     "flex flex-col bg-white border-r border-gray-200 h-[calc(100vh-72px)] sticky top-[72px] transition-all duration-300 ease-in-out z-40 flex-shrink-0 overflow-hidden",
                     collapsed ? "w-[80px]" : "w-[260px]",
-                    // On very small screens, make it absolute or ensure content flows? 
-                    // ERP style often keeps it visible. We'll leave it relative (sticky) as requested.
                 )}
             >
                 {/* Collapse Toggle */}
@@ -137,13 +140,14 @@ export default function Sidebar({ user }: SidebarProps) {
                     </button>
                 </div>
 
-                {/* User Identity Section - Simplified when collapsed */}
+                {/* User Identity Section */}
                 <div className={cn(
                     "border-b border-gray-100 transition-all duration-300",
                     collapsed ? "p-4 flex justify-center items-center" : "p-6"
                 )}>
                     {collapsed ? (
                         <Avatar className="h-10 w-10 border border-gray-100 cursor-pointer" onClick={toggleSidebar}>
+                            <AvatarImage src={user?.profileImage || ''} />
                             <AvatarFallback className="bg-[#1a1a2e] text-white font-bold text-sm">
                                 {user?.name?.charAt(0).toUpperCase()}
                             </AvatarFallback>
@@ -151,7 +155,7 @@ export default function Sidebar({ user }: SidebarProps) {
                     ) : (
                         <div className="flex items-center gap-3">
                             <Avatar className="h-12 w-12 border-2 border-gray-100 shadow-sm">
-                                <AvatarImage src={user?.avatar || ''} alt={user?.name} className="object-cover" />
+                                <AvatarImage src={user?.profileImage || ''} alt={user?.name} className="object-cover" />
                                 <AvatarFallback className="bg-[#1a1a2e] text-white text-lg font-bold">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </AvatarFallback>
@@ -170,7 +174,7 @@ export default function Sidebar({ user }: SidebarProps) {
 
                 {/* Navigation Section */}
                 <nav className={cn(
-                    "flex-1 py-6 overflow-y-auto",
+                    "flex-1 py-6 overflow-y-auto custom-scrollbar",
                     collapsed ? "px-0 flex flex-col items-center space-y-2" : "px-3 space-y-1"
                 )}>
                     {menuItems.map((item) => {

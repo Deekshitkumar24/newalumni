@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { registerAlumni, initializeData } from '@/lib/data/store';
+// import { registerAlumni } from '@/lib/data/store'; // Removed
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,7 +43,7 @@ export default function AlumniRegistrationPage() {
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -61,29 +61,36 @@ export default function AlumniRegistrationPage() {
             return;
         }
 
-        // Initialize data if not already done
-        initializeData();
-
         try {
-            registerAlumni({
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                role: 'alumni',
-                department: formData.department,
-                graduationYear: parseInt(formData.graduationYear),
-                currentCompany: formData.currentCompany || undefined,
-                currentRole: formData.currentRole || undefined,
-                linkedIn: formData.linkedIn || undefined,
-                careerJourney: formData.careerJourney || undefined
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    role: 'alumni',
+                    department: formData.department,
+                    graduationYear: formData.graduationYear,
+                    currentCompany: formData.currentCompany,
+                    currentRole: formData.currentRole,
+                    linkedIn: formData.linkedIn,
+                    careerJourney: formData.careerJourney
+                })
             });
 
-            setSuccess(true);
-        } catch (err) {
-            setError('Registration failed. Please try again.');
-        }
+            const data = await res.json();
 
-        setLoading(false);
+            if (!res.ok) {
+                throw new Error(data.error || 'Registration failed');
+            }
+
+            setSuccess(true);
+        } catch (err: any) {
+            setError(err.message || 'Registration failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (success) {

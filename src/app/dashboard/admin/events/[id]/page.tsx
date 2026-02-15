@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 import { Event, Student } from '@/types';
 import { ClipboardList } from 'lucide-react';
+import { toast } from 'sonner';
 
-import { initializeData, getEvents, getEventRegistrationsPaginated } from '@/lib/data/store';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
 
@@ -15,14 +16,15 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton, RowSkeleton } from "@/components/ui/Skeleton"
+import { Skeleton } from "@/components/ui/Skeleton"
 
 export default function AdminEventDetailPage() {
     const router = useRouter();
     const params = useParams();
     const eventId = params.id as string;
+    const { user: currentUser, isLoading: authLoading } = useAuth();
 
-    const [event, setEvent] = useState<Event | null>(null);
+    const [event, setEvent] = useState<(Event & { registrationsCount?: number }) | null>(null);
     const [registrations, setRegistrations] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -35,45 +37,59 @@ export default function AdminEventDetailPage() {
     const [year, setYear] = useState('All Years');
     const [sort, setSort] = useState<'recent' | 'alphabetical' | 'year'>('recent');
 
-    useEffect(() => {
-        initializeData();
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) { router.push('/login'); return; }
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'admin') { router.push('/login'); return; }
-
+    const fetchDetails = useCallback(async () => {
         setLoading(true);
-        // Simulate network
-        setTimeout(() => {
-            const allEvents = getEvents();
-            const foundEvent = allEvents.find(e => e.id === eventId);
-
-            if (!foundEvent) {
-                // If event not found, redirect back
-                router.push('/dashboard/admin/events');
+        try {
+            // 1. Fetch Event Details
+            const eventRes = await fetch(`/api/events/${eventId}`);
+            if (!eventRes.ok) {
+                if (eventRes.status === 404) {
+                    toast.error("Event not found");
+                    router.push('/dashboard/admin/events');
+                }
                 return;
             }
-            setEvent(foundEvent);
+            const eventData = await eventRes.json();
+            setEvent({
+                ...eventData,
+                registrations: Array(eventData.registrationsCount).fill('id') // Mock array for length count in UI
+            });
 
-            // Fetch Registrations
-            const { data, total, totalPages } = getEventRegistrationsPaginated(
-                eventId,
-                page,
-                10,
+            // 2. Fetch Registrations
+            const queryParams = new URLSearchParams({
+                page: page.toString(),
+                limit: '10',
                 search,
                 dept,
                 year,
-                'all',
                 sort
-            );
-            setRegistrations(data);
-            setTotal(total);
-            setTotalPages(totalPages);
+            });
 
+            const regRes = await fetch(`/api/events/${eventId}/registrations?${queryParams}`);
+            if (regRes.ok) {
+                const regData = await regRes.json();
+                setRegistrations(regData.data);
+                setTotal(regData.total);
+                setTotalPages(regData.totalPages);
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch event data", error);
+            toast.error("Failed to load data");
+        } finally {
             setLoading(false);
-        }, 500);
-
+        }
     }, [eventId, page, search, dept, year, sort, router]);
+
+    useEffect(() => {
+        if (!authLoading) {
+            if (!currentUser || currentUser.role !== 'admin') {
+                router.push('/login');
+                return;
+            }
+            fetchDetails();
+        }
+    }, [authLoading, currentUser, router, fetchDetails]);
 
     if (!event && !loading) return null;
 
@@ -100,7 +116,7 @@ export default function AdminEventDetailPage() {
                     </Link>
                 </div>
 
-                {loading ? (
+                {loading && !event ? (
                     <div className="space-y-6">
                         <Skeleton className="h-32 w-full rounded-lg" />
                         <Skeleton className="h-64 w-full rounded-lg" />
@@ -116,15 +132,15 @@ export default function AdminEventDetailPage() {
                                 <div className="grid md:grid-cols-3 gap-6">
                                     <div>
                                         <span className="text-sm text-gray-500 block mb-1">Date & Time</span>
-                                        <div className="font-medium">{new Date(event!.date).toLocaleDateString()} at {event!.time}</div>
+                                        <div className="font-medium">{event && new Date(event.date).toLocaleDateString()} at {event?.time}</div>
                                     </div>
                                     <div>
                                         <span className="text-sm text-gray-500 block mb-1">Venue</span>
-                                        <div className="font-medium">{event!.venue}</div>
+                                        <div className="font-medium">{event?.venue}</div>
                                     </div>
                                     <div>
                                         <span className="text-sm text-gray-500 block mb-1">Total Registrations</span>
-                                        <div className="font-bold text-2xl text-[#800000]">{event!.registrations.length}</div>
+                                        <div className="font-bold text-2xl text-[#800000]">{event?.registrationsCount || total}</div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -221,7 +237,7 @@ export default function AdminEventDetailPage() {
                                                             </TableCell>
                                                             <TableCell className="text-gray-600 font-mono text-sm">{student.rollNumber}</TableCell>
                                                             <TableCell className="text-gray-600">
-                                                                {student.department} '{student.graduationYear.toString().slice(-2)}
+                                                                {student.department} '{student.graduationYear?.toString().slice(-2)}
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Badge variant="secondary" className={`font-semibold ${student.status === 'approved' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'}`}>

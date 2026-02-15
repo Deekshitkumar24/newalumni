@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { registerStudent, initializeData } from '@/lib/data/store';
+// import { registerStudent } from '@/lib/data/store'; // Removed
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,7 +41,7 @@ export default function StudentRegistrationPage() {
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -65,28 +65,35 @@ export default function StudentRegistrationPage() {
             return;
         }
 
-        // Initialize data if not already done
-        initializeData();
-
         try {
-            registerStudent({
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                role: 'student',
-                rollNumber: formData.rollNumber,
-                department: formData.department,
-                graduationYear: parseInt(formData.graduationYear),
-                skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
-                interests: formData.interests.split(',').map(s => s.trim()).filter(s => s)
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    role: 'student',
+                    rollNumber: formData.rollNumber,
+                    department: formData.department,
+                    graduationYear: formData.graduationYear, // API handles conversion
+                    skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
+                    interests: formData.interests.split(',').map(s => s.trim()).filter(s => s)
+                })
             });
 
-            setSuccess(true);
-        } catch (err) {
-            setError('Registration failed. Please try again.');
-        }
+            const data = await res.json();
 
-        setLoading(false);
+            if (!res.ok) {
+                throw new Error(data.error || 'Registration failed');
+            }
+
+            setSuccess(true);
+        } catch (err: any) {
+            setError(err.message || 'Registration failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (success) {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { initializeData, getStudents, getAlumni, getActiveJobs, getUpcomingEvents, getMentorshipRequests, getPendingUsers } from '@/lib/data/store';
+// import { initializeData, getStudents, getAlumni, getActiveJobs, getUpcomingEvents, getMentorshipRequests, getPendingUsers } from '@/lib/data/store'; // Removed
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AdminDashboard() {
@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     });
 
     useEffect(() => {
-        initializeData();
+        // initializeData(); // Removed
 
         const userStr = localStorage.getItem('vjit_current_user');
         if (!userStr) {
@@ -35,22 +35,16 @@ export default function AdminDashboard() {
 
         setUser(currentUser);
 
-        // Get stats
-        const students = getStudents();
-        const alumni = getAlumni();
-        const pendingUsers = getPendingUsers();
-        const jobs = getActiveJobs();
-        const events = getUpcomingEvents();
-        const mentorships = getMentorshipRequests();
+        // Get stats from API
+        fetch('/api/stats')
+            .then(res => res.json())
+            .then(data => {
+                if (data && !data.error) {
+                    setStats(data);
+                }
+            })
+            .catch(console.error);
 
-        setStats({
-            totalStudents: students.length,
-            totalAlumni: alumni.length,
-            pendingAlumni: pendingUsers.length,
-            activeJobs: jobs.length,
-            upcomingEvents: events.length,
-            mentorships: mentorships.length
-        });
     }, [router]);
 
     const handleLogout = () => {
@@ -75,36 +69,46 @@ export default function AdminDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg">
-                    <div className="text-3xl font-bold text-[#800000]">{stats.pendingAlumni}</div>
-                    <div className="text-gray-600 mt-1">Pending Approvals</div>
-                </div>
-                <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg">
-                    <div className="text-3xl font-bold text-[#800000]">{stats.totalAlumni}</div>
-                    <div className="text-gray-600 mt-1">Total Alumni</div>
-                </div>
+                <Link href="/dashboard/admin/users?role=alumni&status=pending" className="block">
+                    <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="text-3xl font-bold text-[#800000]">{stats.pendingAlumni}</div>
+                        <div className="text-gray-600 mt-1">Pending Approvals</div>
+                    </div>
+                </Link>
+                <Link href="/alumni-directory" className="block">
+                    <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg hover:shadow-md transition-shadow">
+                        <div className="text-3xl font-bold text-[#800000]">{stats.totalAlumni}</div>
+                        <div className="text-gray-600 mt-1">Total Alumni</div>
+                    </div>
+                </Link>
                 <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg">
                     <div className="text-3xl font-bold text-[#800000]">{stats.totalStudents}</div>
                     <div className="text-gray-600 mt-1">Total Students</div>
                 </div>
-                <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg">
-                    <div className="text-3xl font-bold text-[#800000]">{stats.activeJobs}</div>
-                    <div className="text-gray-600 mt-1">Active Jobs</div>
-                </div>
+                <Link href="/dashboard/admin/jobs" className="block">
+                    <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-lg hover:shadow-md transition-shadow">
+                        <div className="text-3xl font-bold text-[#800000]">{stats.activeJobs}</div>
+                        <div className="text-gray-600 mt-1">Active Jobs</div>
+                    </div>
+                </Link>
             </div>
 
             {/* System Health / Quick Overview */}
             <div className="bg-white border border-gray-200 p-8 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">System Overview</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 rounded border border-gray-100">
-                        <h3 className="font-semibold text-gray-700 mb-1">Upcoming Events</h3>
-                        <p className="text-2xl font-bold text-[#800000]">{stats.upcomingEvents}</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded border border-gray-100">
-                        <h3 className="font-semibold text-gray-700 mb-1">Active Mentorships</h3>
-                        <p className="text-2xl font-bold text-[#800000]">{stats.mentorships}</p>
-                    </div>
+                    <Link href="/dashboard/admin/events" className="block">
+                        <div className="p-4 bg-gray-50 rounded border border-gray-100 hover:bg-gray-100 transition-colors">
+                            <h3 className="font-semibold text-gray-700 mb-1">Upcoming Events</h3>
+                            <p className="text-2xl font-bold text-[#800000]">{stats.upcomingEvents}</p>
+                        </div>
+                    </Link>
+                    <Link href="/dashboard/admin/mentorships" className="block">
+                        <div className="p-4 bg-gray-50 rounded border border-gray-100 hover:bg-gray-100 transition-colors">
+                            <h3 className="font-semibold text-gray-700 mb-1">Pending Mentorships</h3>
+                            <p className="text-2xl font-bold text-[#800000]">{stats.mentorships}</p>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>

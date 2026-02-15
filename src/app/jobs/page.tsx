@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { getJobsPaginated, initializeData } from '@/lib/data/store';
 import { Job, User } from '@/types';
 import { Building2, MapPin, User as UserIcon, Clock, Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,7 @@ export default function JobsPage() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     useEffect(() => {
-        initializeData();
+
         const userStr = localStorage.getItem('vjit_current_user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -33,22 +32,40 @@ export default function JobsPage() {
     }, []);
 
     useEffect(() => {
-        setLoading(true);
-        // Simulate network delay
-        const timer = setTimeout(() => {
-            const { data, total, totalPages } = getJobsPaginated(
-                currentPage,
-                ITEMS_PER_PAGE,
-                searchTerm,
-                jobType
-            );
-            setJobs(data);
-            setTotalItems(total);
-            setTotalPages(totalPages);
-            setLoading(false);
-        }, 300);
+        const fetchJobs = async () => {
+            setLoading(true);
+            try {
+                const queryParams = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: ITEMS_PER_PAGE.toString(),
+                    ...(searchTerm && { company: searchTerm }), // Search by company for now based on API capability
+                    ...(jobType !== 'all' && { type: jobType }),
+                });
 
-        return () => clearTimeout(timer);
+                const res = await fetch(`/api/jobs?${queryParams}`);
+                const data = await res.json();
+
+                if (res.ok) {
+                    setJobs(data.data);
+                    // API returns meta.page/limit but not total count yet. 
+                    // For now, if we get full page, assume there might be more. 
+                    // Ideally API should return total. 
+                    // I will assume simple pagination logic: if data.length < limit, it's the last page.
+                    // Or I can update API to return total. 
+                    // Let's stick to safe fallback:
+                    setTotalItems(data.data.length); // Temporary
+                    setTotalPages(data.data.length === ITEMS_PER_PAGE ? currentPage + 1 : currentPage);
+                } else {
+                    console.error('Failed to fetch jobs');
+                }
+            } catch (error) {
+                console.error('Error fetching jobs:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchJobs();
     }, [currentPage, searchTerm, jobType]);
 
     const handleFilterChange = (setter: (val: string) => void, val: string) => {
@@ -111,8 +128,8 @@ export default function JobsPage() {
                                 className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent bg-white"
                             >
                                 <option value="all">All Types</option>
-                                <option value="full-time">Full-Time</option>
-                                <option value="part-time">Part-Time</option>
+                                <option value="full_time">Full-Time</option>
+                                <option value="part_time">Part-Time</option>
                                 <option value="internship">Internship</option>
                             </select>
                         </div>
@@ -148,7 +165,7 @@ export default function JobsPage() {
                                                     {job.title}
                                                 </h2>
                                             </Link>
-                                            <span className={`tag ${job.type === 'full-time'
+                                            <span className={`tag ${job.type === 'full_time'
                                                 ? 'tag-fulltime'
                                                 : job.type === 'internship'
                                                     ? 'tag-internship'
@@ -164,10 +181,10 @@ export default function JobsPage() {
                                         </div>
                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                                             <span className="flex items-center gap-1.5">
-                                                <UserIcon size={14} /> Posted by <span className="font-medium text-gray-700">{job.postedByName}</span>
+                                                <UserIcon size={14} /> Posted by <span className="font-medium text-gray-700">{job.poster?.fullName || job.postedByName || 'Alumni'}</span>
                                             </span>
                                             <span className="flex items-center gap-1.5">
-                                                <Clock size={14} /> {formatDate(job.postedAt)}
+                                                <Clock size={14} /> {formatDate(job.createdAt || job.postedAt || '')}
                                             </span>
                                         </div>
                                     </div>

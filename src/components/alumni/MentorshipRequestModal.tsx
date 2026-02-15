@@ -1,8 +1,6 @@
-'use client';
-
 import { useState } from 'react';
-import { createMentorshipRequest } from '@/lib/data/store';
 import { Alumni, User } from '@/types';
+import { toast } from 'sonner';
 
 interface MentorshipRequestModalProps {
     isOpen: boolean;
@@ -13,13 +11,14 @@ interface MentorshipRequestModalProps {
 
 export default function MentorshipRequestModal({ isOpen, onClose, student, alumni }: MentorshipRequestModalProps) {
     const [message, setMessage] = useState('');
+    const [requestType, setRequestType] = useState('Career Guidance');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
@@ -31,19 +30,34 @@ export default function MentorshipRequestModal({ isOpen, onClose, student, alumn
         }
 
         try {
-            // Simulate network delay
+            const res = await fetch('/api/mentorship/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mentorId: alumni.id,
+                    requestType: requestType,
+                    description: message
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to send request');
+            }
+
+            setSuccess(true);
             setTimeout(() => {
-                createMentorshipRequest(student.id, alumni.id, message);
-                setSuccess(true);
-                setLoading(false);
-                setTimeout(() => {
-                    onClose();
-                    setSuccess(false);
-                    setMessage('');
-                }, 2000);
-            }, 800);
-        } catch (err) {
-            setError('Failed to send request. Please try again later.');
+                onClose();
+                setSuccess(false);
+                setMessage('');
+                setRequestType('Career Guidance');
+            }, 2000);
+
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Failed to send request. Please try again later.');
+        } finally {
             setLoading(false);
         }
     };
@@ -88,6 +102,23 @@ export default function MentorshipRequestModal({ isOpen, onClose, student, alumn
                                         <div className="font-medium text-gray-900">{alumni.currentRole}</div>
                                         <div className="text-xs text-gray-500">at {alumni.currentCompany}</div>
                                     </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Request Type <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={requestType}
+                                        onChange={(e) => setRequestType(e.target.value)}
+                                        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent"
+                                    >
+                                        <option value="Career Guidance">Career Guidance</option>
+                                        <option value="Resume Review">Resume Review</option>
+                                        <option value="Mock Interview">Mock Interview</option>
+                                        <option value="General Mentorship">General Mentorship</option>
+                                        <option value="Project Assessment">Project Assessment</option>
+                                    </select>
                                 </div>
 
                                 <label className="block text-sm font-medium text-gray-700 mb-2">

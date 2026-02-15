@@ -1,159 +1,225 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { AlertTriangle, CheckCircle2, XCircle, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Alumni, MentorshipRequest, Student } from '@/types';
-import { initializeData, getMentorshipRequestsByAlumni, respondToMentorshipRequest, getStudents } from '@/lib/data/store';
+
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => res.json());
+
+const REQUEST_TYPES: Record<string, string> = {
+    career_guidance: 'Career Guidance',
+    project_help: 'Project Help',
+    skill_development: 'Skill Development',
+    industry_insights: 'Industry Insights',
+    resume_review: 'Resume Review',
+    interview_prep: 'Interview Preparation',
+    general: 'General Mentorship',
+};
 
 export default function AlumniMentorshipPage() {
+    const { user, isLoading: authLoading } = useAuth();
     const router = useRouter();
-    const [user, setUser] = useState<Alumni | null>(null);
-    const [requests, setRequests] = useState<MentorshipRequest[]>([]);
-    const [students, setStudents] = useState<Student[]>([]);
 
-    useEffect(() => {
-        initializeData();
+    const { data: requestsData, isLoading: requestsLoading, mutate } = useSWR(
+        user?.role === 'alumni' ? '/api/mentorship/me' : null,
+        fetcher
+    );
+    const requests: any[] = requestsData?.data || [];
 
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) {
-            router.push('/login');
-            return;
-        }
+    const [respondingId, setRespondingId] = useState<string | null>(null);
 
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'alumni') {
-            router.push('/login');
-            return;
-        }
-
-        setUser(currentUser);
-        setRequests(getMentorshipRequestsByAlumni(currentUser.id));
-        setStudents(getStudents());
-    }, [router]);
-
-    const getStudentById = (id: string) => {
-        return students.find(s => s.id === id);
-    };
-
-    const handleRespond = (requestId: string, status: 'accepted' | 'rejected') => {
-        respondToMentorshipRequest(requestId, status);
-        setRequests(getMentorshipRequestsByAlumni(user!.id));
-    };
-
-    if (!user) {
+    if (authLoading || (user?.role === 'alumni' && requestsLoading)) {
         return (
-            <div className="container mx-auto px-4 py-10 text-center">
-                <p>Loading...</p>
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-48" />
+                <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-lg" />)}
+                </div>
             </div>
         );
     }
 
-    const pendingRequests = requests.filter(r => r.status === 'pending');
-    const respondedRequests = requests.filter(r => r.status !== 'pending');
+    if (!user || user.role !== 'alumni') return null;
+
+    const handleRespond = async (requestId: string, status: 'accepted' | 'rejected') => {
+        setRespondingId(requestId);
+        try {
+            const res = await fetch(`/api/mentorship/${requestId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `Failed to ${status} request`);
+            toast.success(`Request ${status}!`);
+            mutate();
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setRespondingId(null);
+        }
+    };
+
+    const pendingRequests = requests.filter(r => r.status === 'pending' && !r.stoppedByAdmin);
+    const stoppedRequests = requests.filter(r => r.stoppedByAdmin);
+    const resolvedRequests = requests.filter(r => r.status !== 'pending' && !r.stoppedByAdmin);
 
     return (
-        <div className="bg-[#f5f5f5] min-h-screen">
-            {/* Header */}
-            <div className="bg-[#DAA520] text-[#333] py-6">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-2xl font-semibold">Mentorship Hub</h1>
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b-2 border-[#800000]">
+                <div>
+                    <h1 className="text-2xl font-bold text-[#800000]">Mentorship Hub</h1>
+                    <p className="text-gray-600 mt-1">Manage mentorship requests from students.</p>
                 </div>
+                <Badge variant="outline" className="text-sm px-3 py-1">
+                    {pendingRequests.length} pending
+                </Badge>
             </div>
 
-            <div className="container mx-auto px-4 py-8">
-                {/* Pending Requests */}
-                <div className="bg-white border border-gray-200 mb-8">
-                    <div className="bg-[#800000] text-white px-6 py-4">
-                        <h2 className="font-semibold">Pending Requests ({pendingRequests.length})</h2>
-                    </div>
-
-                    {pendingRequests.length > 0 ? (
-                        <div className="divide-y divide-gray-200">
-                            {pendingRequests.map(request => {
-                                const student = getStudentById(request.studentId);
-                                return (
-                                    <div key={request.id} className="p-6">
-                                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                            <div>
-                                                <div className="font-medium text-[#800000]">{student?.name || 'Unknown Student'}</div>
-                                                <div className="text-sm text-gray-600">
-                                                    {student?.department} | Class of {student?.graduationYear}
+            {requests.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
+                    <p className="text-gray-500 text-lg mb-2">No mentorship requests yet</p>
+                    <p className="text-gray-400 text-sm">When students request your mentorship, they will appear here.</p>
+                </div>
+            ) : (
+                <>
+                    {/* Pending Requests */}
+                    {pendingRequests.length > 0 && (
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                Pending Requests
+                                <Badge className="bg-yellow-100 text-yellow-800">{pendingRequests.length}</Badge>
+                            </h2>
+                            <div className="space-y-4">
+                                {pendingRequests.map((request: any) => (
+                                    <div key={request.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="flex items-start gap-4">
+                                            <Avatar className="h-12 w-12">
+                                                <AvatarImage src={request.otherUser?.profileImage} />
+                                                <AvatarFallback>{(request.otherUser?.fullName || request.otherUser?.name)?.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h3 className="font-semibold text-gray-900">{request.otherUser?.fullName || request.otherUser?.name}</h3>
+                                                    <span className="text-xs text-gray-400">{new Date(request.createdAt).toLocaleDateString()}</span>
                                                 </div>
-                                                <div className="text-sm text-gray-500 mt-1">
-                                                    Roll No: {student?.rollNumber}
+                                                <Badge variant="outline" className="text-xs mb-2">{REQUEST_TYPES[request.requestType] || request.requestType}</Badge>
+                                                <p className="text-sm text-gray-700 mt-1">{request.description || request.message}</p>
+                                                <div className="flex gap-2 mt-4">
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => handleRespond(request.id, 'accepted')}
+                                                        disabled={respondingId === request.id}
+                                                        className="bg-green-600 hover:bg-green-700"
+                                                    >
+                                                        <CheckCircle2 size={14} className="mr-1" /> Accept
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => handleRespond(request.id, 'rejected')}
+                                                        disabled={respondingId === request.id}
+                                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                                    >
+                                                        <XCircle size={14} className="mr-1" /> Decline
+                                                    </Button>
                                                 </div>
-                                                {student?.skills && student.skills.length > 0 && (
-                                                    <div className="text-xs text-gray-400 mt-1">
-                                                        Skills: {student.skills.join(', ')}
-                                                    </div>
-                                                )}
-                                                <div className="mt-3 p-3 bg-gray-50 text-sm text-gray-600">
-                                                    <strong>Message:</strong> {request.message}
-                                                </div>
-                                                <div className="text-xs text-gray-400 mt-2">
-                                                    Requested on: {new Date(request.createdAt).toLocaleDateString()}
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleRespond(request.id, 'accepted')}
-                                                    className="bg-[#800000] text-white px-4 py-2 text-sm hover:bg-[#660000]"
-                                                >
-                                                    Accept
-                                                </button>
-                                                <button
-                                                    onClick={() => handleRespond(request.id, 'rejected')}
-                                                    className="bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
-                                                >
-                                                    Decline
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="p-6 text-center text-gray-500">
-                            No pending mentorship requests.
+                                ))}
+                            </div>
                         </div>
                     )}
-                </div>
 
-                {/* Responded Requests */}
-                {respondedRequests.length > 0 && (
-                    <div className="bg-white border border-gray-200">
-                        <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
-                            <h2 className="font-semibold text-gray-700">Previous Requests ({respondedRequests.length})</h2>
-                        </div>
-
-                        <div className="divide-y divide-gray-200">
-                            {respondedRequests.map(request => {
-                                const student = getStudentById(request.studentId);
-                                return (
-                                    <div key={request.id} className="p-4 flex items-center justify-between">
-                                        <div>
-                                            <div className="font-medium">{student?.name || 'Unknown Student'}</div>
-                                            <div className="text-sm text-gray-600">
-                                                {student?.department} | Class of {student?.graduationYear}
+                    {/* Stopped by Admin */}
+                    {stoppedRequests.length > 0 && (
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                Stopped by Admin
+                                <Badge variant="destructive">{stoppedRequests.length}</Badge>
+                            </h2>
+                            <div className="space-y-4">
+                                {stoppedRequests.map((request: any) => (
+                                    <div key={request.id} className="bg-red-50 border border-red-200 rounded-lg p-5">
+                                        <div className="flex items-start gap-4">
+                                            <Avatar className="h-12 w-12">
+                                                <AvatarImage src={request.otherUser?.profileImage} />
+                                                <AvatarFallback>{(request.otherUser?.fullName || request.otherUser?.name)?.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h3 className="font-semibold text-gray-900">{request.otherUser?.fullName || request.otherUser?.name}</h3>
+                                                    <Badge variant="destructive" className="bg-red-700">Stopped</Badge>
+                                                </div>
+                                                <Badge variant="outline" className="text-xs mb-2">{REQUEST_TYPES[request.requestType] || request.requestType}</Badge>
+                                                <p className="text-sm text-gray-700 mt-1">{request.description || request.message}</p>
+                                                {request.stopReason && (
+                                                    <div className="mt-3 flex items-start gap-2 text-sm text-red-700 bg-white/70 p-3 rounded border border-red-100">
+                                                        <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+                                                        <span><strong>Admin reason:</strong> {request.stopReason}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className={`text-sm px-3 py-1 ${request.status === 'accepted'
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-red-100 text-red-700'
-                                            }`}>
-                                            {request.status === 'accepted' ? 'Accepted' : 'Declined'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Resolved Requests */}
+                    {resolvedRequests.length > 0 && (
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-800 mb-3">Previous Requests</h2>
+                            <div className="space-y-3">
+                                {resolvedRequests.map((request: any) => (
+                                    <div key={request.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={request.otherUser?.profileImage} />
+                                                    <AvatarFallback>{(request.otherUser?.fullName || request.otherUser?.name)?.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium text-gray-900">{request.otherUser?.fullName || request.otherUser?.name}</div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {REQUEST_TYPES[request.requestType] || request.requestType} • {new Date(request.createdAt).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant={request.status === 'accepted' ? 'default' : 'destructive'}
+                                                    className={request.status === 'accepted' ? 'bg-green-600' : ''}>
+                                                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                                                </Badge>
+                                                {request.status === 'accepted' && (
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-[#800000] hover:bg-[#660000] h-8"
+                                                        onClick={() => router.push(`/dashboard/messages?to=${request.otherUser?.id}`)}
+                                                    >
+                                                        <MessageCircle size={14} className="mr-1" /> Message
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
-
-
-            </div>
+                    )}
+                </>
+            )}
         </div>
     );
 }

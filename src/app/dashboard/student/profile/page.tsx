@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Student } from '@/types';
-import { initializeData } from '@/lib/data/store';
+// import { initializeData } from '@/lib/data/store'; // Removed
 import { toast } from 'sonner';
 
 import { Button } from "@/components/ui/button"
@@ -24,7 +23,8 @@ export default function StudentProfilePage() {
     const [formData, setFormData] = useState({
         skills: '',
         interests: '',
-        profileImage: ''
+        profileImage: '',
+        fullName: '' // Added fullName editing support
     });
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,52 +40,89 @@ export default function StudentProfilePage() {
     };
 
     useEffect(() => {
-        initializeData();
+        const fetchProfile = async () => {
+            const token = document.cookie.includes('token='); // Simple client check or just rely on API 401
+            // Better to just call API
 
-        const userStr = localStorage.getItem('vjit_current_user');
-        if (!userStr) {
-            router.push('/login');
-            return;
-        }
+            try {
+                const res = await fetch('/api/profile/me');
+                if (res.status === 401 || res.status === 403) {
+                    router.push('/login');
+                    return;
+                }
+                const data = await res.json();
 
-        const currentUser = JSON.parse(userStr);
-        if (currentUser.role !== 'student') {
-            router.push('/login');
-            return;
-        }
+                if (data.user) {
+                    // Merge User and Profile for UI
+                    const mergedUser: Student = {
+                        ...data.user,
+                        ...data.profile, // Flatten profile fields
+                        name: data.user.fullName || data.user.name, // Ensure accurate name
+                        // data.profile might have nulls, ensure arrays
+                        skills: data.profile?.skills || [],
+                        interests: data.profile?.interests || [],
+                    };
 
-        // Simulate fetch delay for skeleton
-        setTimeout(() => {
-            setUser(currentUser);
-            setFormData({
-                skills: currentUser.skills?.join(', ') || '',
-                interests: currentUser.interests?.join(', ') || '',
-                profileImage: currentUser.profileImage || ''
-            });
-            setLoading(false);
-        }, 500);
+                    setUser(mergedUser);
+                    setFormData({
+                        skills: mergedUser.skills?.join(', ') || '',
+                        interests: mergedUser.interests?.join(', ') || '',
+                        profileImage: mergedUser.profileImage || '',
+                        fullName: mergedUser.name
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch profile", error);
+                toast.error("Failed to load profile.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
     }, [router]);
 
     const handleLogout = () => {
-        localStorage.removeItem('vjit_current_user');
-        window.location.href = '/';
+        document.cookie = 'token=; Max-Age=0; path=/;'; // Clear cookie // Basic clear
+        localStorage.removeItem('vjit_current_user'); // Legacy clear
+        window.location.href = '/login';
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!user) return;
 
-        const updatedUser = {
-            ...user,
-            skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
-            interests: formData.interests.split(',').map(s => s.trim()).filter(s => s),
-            profileImage: formData.profileImage || undefined
-        };
+        try {
+            const payload = {
+                skills: formData.skills.split(',').map(s => s.trim()).filter(s => s),
+                interests: formData.interests.split(',').map(s => s.trim()).filter(s => s),
+                profileImage: formData.profileImage || undefined,
+                fullName: formData.fullName
+            };
 
-        // Update in localStorage
-        localStorage.setItem('vjit_current_user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        setIsEditing(false);
-        toast.success("Profile updated successfully!");
+            const res = await fetch('/api/profile/me', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error('Failed to update');
+
+            // Optimistic update
+            const updatedUser = {
+                ...user,
+                ...payload,
+                name: payload.fullName || user.name
+            };
+
+            setUser(updatedUser as any); // Cast as merging types is tricky sometimes
+            setIsEditing(false);
+            toast.success("Profile updated successfully!");
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to update profile.");
+        }
     };
 
     if (loading) {
@@ -146,7 +183,17 @@ export default function StudentProfilePage() {
                                 )}
                             </div>
                             <div className="mt-4 text-center">
-                                <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
+                                {isEditing ? (
+                                    <Input
+                                        value={formData.fullName}
+                                        onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                        className="text-center font-bold text-xl max-w-xs mx-auto mt-2"
+                                        placeholder="Full Name"
+                                    />
+                                ) : (
+                                    <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
+                                )}
+
                                 <p className="text-gray-500">{user.email}</p>
                                 <Badge className={`mt-2 ${user.status === 'approved' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'}`}>
                                     {user.status?.toUpperCase()}
@@ -207,7 +254,8 @@ export default function StudentProfilePage() {
                                                 setFormData({
                                                     skills: user.skills?.join(', ') || '',
                                                     interests: user.interests?.join(', ') || '',
-                                                    profileImage: user.profileImage || ''
+                                                    profileImage: user.profileImage || '',
+                                                    fullName: user.name
                                                 });
                                             }}
                                         >

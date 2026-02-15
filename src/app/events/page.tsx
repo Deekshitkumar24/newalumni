@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Pagination from '@/components/ui/Pagination';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { getEventsPaginated, initializeData } from '@/lib/data/store';
 import { Event, User } from '@/types';
 import { Clock, MapPin } from 'lucide-react';
 
@@ -22,7 +21,6 @@ export default function EventsPage() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     useEffect(() => {
-        initializeData();
         const userStr = localStorage.getItem('vjit_current_user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -31,19 +29,30 @@ export default function EventsPage() {
 
     useEffect(() => {
         setLoading(true);
-        const timer = setTimeout(() => {
-            const { data, total, totalPages } = getEventsPaginated(
-                currentPage,
-                ITEMS_PER_PAGE,
-                activeTab
-            );
-            setEvents(data);
-            setTotalItems(total);
-            setTotalPages(totalPages);
-            setLoading(false);
-        }, 300);
+        // Add artificial delay for smooth transition if needed, or remove. 
+        // 300ms debounce is fine if user clicks rapidly, but fetch is async.
+        // Better to use AbortController or just simple fetch.
 
-        return () => clearTimeout(timer);
+        const fetchEvents = async () => {
+            try {
+                const res = await fetch(`/api/events?type=${activeTab}&page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+                const data = await res.json();
+
+                if (data.data) {
+                    setEvents(data.data);
+                    if (data.meta) {
+                        setTotalItems(data.meta.total);
+                        setTotalPages(data.meta.totalPages);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch events', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
     }, [currentPage, activeTab]);
 
     const handleTabChange = (tab: 'upcoming' | 'past') => {

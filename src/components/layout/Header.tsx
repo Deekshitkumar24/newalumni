@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { User } from '@/types';
 import { ChevronDown, LayoutDashboard, User as UserIcon, LogOut, X, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/ui/NotificationBell";
 
 export default function Header() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -138,69 +139,72 @@ export default function Header() {
                     </nav>
 
                     {/* Right Section */}
-                    <div className="hidden lg:flex items-center">
+                    <div className="hidden lg:flex items-center gap-4">
                         {currentUser ? (
-                            <div className="relative user-menu-container">
-                                <button
-                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                    className="flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-[#800000]/20 rounded-full p-1 transition-all"
-                                    aria-expanded={userMenuOpen}
-                                    aria-haspopup="true"
-                                >
-                                    <Avatar className="h-10 w-10 border-2 border-transparent hover:border-[#800000]/20 transition-all">
-                                        <AvatarImage src={currentUser.avatar || ''} alt={currentUser.name} className="object-cover" />
-                                        <AvatarFallback className="bg-[#800000] text-white font-bold text-lg">
-                                            {currentUser.name?.charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-left hidden xl:block">
-                                        <p className="text-sm font-bold text-gray-900 leading-tight">{currentUser.name}</p>
-                                    </div>
-                                    <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {userMenuOpen && (
-                                    <div className="absolute right-0 mt-3 w-60 bg-white rounded-lg shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right ring-1 ring-black/5">
-                                        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                                            <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
-                                            <p className="text-xs text-gray-500 truncate mt-0.5">{currentUser.email}</p>
+                            <>
+                                <NotificationBell currentUser={currentUser} />
+                                <div className="relative user-menu-container">
+                                    <button
+                                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                        className="flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-[#800000]/20 rounded-full p-1 transition-all"
+                                        aria-expanded={userMenuOpen}
+                                        aria-haspopup="true"
+                                    >
+                                        <Avatar className="h-10 w-10 border-2 border-transparent hover:border-[#800000]/20 transition-all">
+                                            <AvatarImage src={currentUser.avatar || ''} alt={currentUser.name} className="object-cover" />
+                                            <AvatarFallback className="bg-[#800000] text-white font-bold text-lg">
+                                                {currentUser.name?.charAt(0).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="text-left hidden xl:block">
+                                            <p className="text-sm font-bold text-gray-900 leading-tight">{currentUser.name}</p>
                                         </div>
+                                        <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                                        <div className="p-1.5 space-y-0.5">
-                                            <Link
-                                                href={getDashboardLink()}
-                                                onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#800000] rounded-md transition-colors"
-                                            >
-                                                <LayoutDashboard size={18} className="opacity-70" />
-                                                Dashboard
-                                            </Link>
+                                    {/* Dropdown Menu */}
+                                    {userMenuOpen && (
+                                        <div className="absolute right-0 mt-3 w-60 bg-white rounded-lg shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right ring-1 ring-black/5">
+                                            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                                                <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
+                                                <p className="text-xs text-gray-500 truncate mt-0.5">{currentUser.email}</p>
+                                            </div>
 
-                                            {currentUser.role !== 'admin' && (
+                                            <div className="p-1.5 space-y-0.5">
                                                 <Link
-                                                    href={getProfileLink()}
+                                                    href={getDashboardLink()}
                                                     onClick={() => setUserMenuOpen(false)}
                                                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#800000] rounded-md transition-colors"
                                                 >
-                                                    <UserIcon size={18} className="opacity-70" />
-                                                    My Profile
+                                                    <LayoutDashboard size={18} className="opacity-70" />
+                                                    Dashboard
                                                 </Link>
-                                            )}
-                                        </div>
 
-                                        <div className="border-t border-gray-100 p-1.5 mt-1">
-                                            <button
-                                                onClick={handleLogout}
-                                                className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                                            >
-                                                <LogOut size={18} className="opacity-70" />
-                                                Log Out
-                                            </button>
+                                                {currentUser.role !== 'admin' && (
+                                                    <Link
+                                                        href={getProfileLink()}
+                                                        onClick={() => setUserMenuOpen(false)}
+                                                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#800000] rounded-md transition-colors"
+                                                    >
+                                                        <UserIcon size={18} className="opacity-70" />
+                                                        My Profile
+                                                    </Link>
+                                                )}
+                                            </div>
+
+                                            <div className="border-t border-gray-100 p-1.5 mt-1">
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                                                >
+                                                    <LogOut size={18} className="opacity-70" />
+                                                    Log Out
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            </>
                         ) : (
                             <div className="flex items-center gap-4 ml-8">
                                 <Link
