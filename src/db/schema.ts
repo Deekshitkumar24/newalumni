@@ -81,9 +81,22 @@ export const jobs = pgTable('jobs', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// ... (keep applications)
-
 // 4. Content
+export const applications = pgTable('applications', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    jobId: uuid('job_id').notNull().references(() => jobs.id, { onDelete: 'cascade' }),
+    applicantId: uuid('applicant_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    status: applicationStatusEnum('status').default('pending').notNull(),
+    resumeUrl: varchar('resume_url'),
+    coverLetter: text('cover_letter'),
+    reviewedAt: timestamp('reviewed_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+    uniqueApplication: uniqueIndex('unique_job_application').on(t.jobId, t.applicantId),
+    applicantIdx: index('application_applicant_idx').on(t.applicantId),
+    jobIdx: index('application_job_idx').on(t.jobId),
+}));
 export const events = pgTable('events', {
     id: uuid('id').defaultRandom().primaryKey(),
     title: varchar('title').notNull(),
