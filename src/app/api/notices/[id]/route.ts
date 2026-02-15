@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { notices } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -19,7 +19,7 @@ async function getAuthUser(req: Request) {
 }
 
 // DELETE: Delete Notice (Admin)
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth || auth.role !== 'admin') {
@@ -37,7 +37,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 }
 
 // PATCH: Update Notice (Admin)
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth || auth.role !== 'admin') {

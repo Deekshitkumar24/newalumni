@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { eventRegistrations, users, studentProfiles } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -12,7 +12,7 @@ async function getAuthUser(req: Request) {
     return verifyToken(token);
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth || auth.role !== 'admin') {

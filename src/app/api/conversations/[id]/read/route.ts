@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { conversationParticipants, users } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -13,7 +13,7 @@ async function getAuthUser(req: Request) {
 }
 
 // PATCH /api/conversations/[id]/read — Mark conversation as read
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { messages, conversations, conversationParticipants, users, notifications } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -20,7 +20,7 @@ async function getAuthUser(req: Request) {
 }
 
 // POST: Send Message
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -140,7 +140,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 }
 
 // GET: List Messages
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

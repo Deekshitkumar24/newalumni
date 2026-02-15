@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { jobs, applications, users } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -12,7 +12,7 @@ async function getAuthUser(req: Request) {
 }
 
 // POST: Apply for a Job
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

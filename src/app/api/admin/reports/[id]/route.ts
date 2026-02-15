@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { reports, auditLogs } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -16,7 +16,7 @@ async function getAuthUser(req: Request) {
 }
 
 // PATCH: Resolve / Dismiss Report
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth || auth.role !== 'admin') {

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { eventRegistrations, events } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -10,7 +10,7 @@ async function getAuthUser(req: Request) {
     return verifyToken(token);
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
         const auth = await getAuthUser(req);

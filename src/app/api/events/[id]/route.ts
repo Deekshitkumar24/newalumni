@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { events, users } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -20,7 +20,7 @@ async function getAuthUser(req: Request) {
 }
 
 // GET: Single Event
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
         const auth = await getAuthUser(req);
@@ -66,7 +66,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 // DELETE: Delete Event (Admin or Creator)
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -89,7 +89,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 }
 
 // PATCH: Update Event (Admin or Creator)
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

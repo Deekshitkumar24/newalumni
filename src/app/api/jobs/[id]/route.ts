@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { jobs, users } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -10,7 +10,7 @@ async function getAuthUser(req: Request) {
     return verifyToken(token);
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -56,7 +56,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 }
 // DELETE: Delete Job (Admin or Owner)
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -85,7 +85,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 }
 
 // PATCH: Update Job (Owner/Admin) - e.g. Close Job
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await getAuthUser(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
