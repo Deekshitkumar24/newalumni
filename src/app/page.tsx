@@ -67,21 +67,52 @@ export default function HomePage() {
         {sliderImages.length > 0 ? (
           <>
             {sliderImages.map((slide, index) => {
-              const slideContent = (
-                <>
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
+              const targetLink = slide.linkUrl || slide.link;
 
-                  {/* Background Image */}
-                  <Image
-                    src={slide.imageUrl}
-                    alt={slide.title}
-                    fill
-                    className="object-cover"
-                    priority={index === 0}
-                  />
+              return (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                >
+                  {/* Background Layer (Image + Gradient) */}
+                  {targetLink ? (
+                    <Link href={targetLink} className="absolute inset-0 z-0 block">
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
+                      {slide.imageUrl ? (
+                        <Image
+                          src={slide.imageUrl}
+                          alt={slide.title || 'Slider Image'}
+                          fill
+                          className="object-cover"
+                          priority={index === 0}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                          <span className="text-white/10 text-9xl font-serif">VJIT</span>
+                        </div>
+                      )}
+                    </Link>
+                  ) : (
+                    <div className="absolute inset-0 z-0 block">
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10" />
+                      {slide.imageUrl ? (
+                        <Image
+                          src={slide.imageUrl}
+                          alt={slide.title || 'Slider Image'}
+                          fill
+                          className="object-cover"
+                          priority={index === 0}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                          <span className="text-white/10 text-9xl font-serif">VJIT</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                  <div className="absolute inset-0 z-20 container mx-auto px-4 flex flex-col justify-center">
+                  {/* Content Layer (Text + Buttons) - Pointer events handled carefully */}
+                  <div className="absolute inset-0 z-20 container mx-auto px-4 flex flex-col justify-center pointer-events-none">
                     <div className="max-w-2xl animate-fadeInUp">
                       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg font-serif">
                         {slide.title}
@@ -90,43 +121,17 @@ export default function HomePage() {
                         Fostering a lifelong connection between the Institute and its Alumni.
                       </p>
 
-                      {/* Only show buttons if NOT a linked slide (or maybe always? logic depends on design. For now keeping buttons as static hero elements) */}
-                      {/* Actually, if the whole slide is a link, buttons might conflict. 
-                           But user asked for "banner/slider images" to be linkable. 
-                           Usually that means the whole image. 
-                           If I wrap the whole div in Link, buttons inside might be issue. 
-                           I'll wrap just the Image and Text, OR make the whole thing clickable. 
-                           Given the `linkUrl` is specific to the slide, I'll wrap the slide content. 
-                       */}
-                      <div className="flex gap-4 pt-4 pointer-events-auto relative z-30">
-                        <Link href="/register" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
+                      {/* Buttons: Enable pointer events specifically for them */}
+                      <div className="flex gap-4 pt-4 relative z-30 pointer-events-auto">
+                        <Link href="/register" className="bg-white text-[#1a1a1a] px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
                           Join Community
                         </Link>
-                        <Link href="/alumni-directory" className="bg-white text-[#1a1a1a]  px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
+                        <Link href="/alumni-directory" className="bg-white text-[#1a1a1a] px-8 py-3.5 rounded text-sm uppercase tracking-wider font-bold hover:bg-gray-100 hover:shadow-lg active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] transform hover:-translate-y-1">
                           Search Directory
                         </Link>
                       </div>
                     </div>
                   </div>
-                </>
-              );
-
-              const targetLink = slide.linkUrl || slide.link;
-
-              return (
-                <div
-                  key={slide.id}
-                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-                >
-                  {targetLink ? (
-                    <Link href={targetLink} className="block w-full h-full relative cursor-pointer">
-                      {slideContent}
-                    </Link>
-                  ) : (
-                    <div className="block w-full h-full relative">
-                      {slideContent}
-                    </div>
-                  )}
                 </div>
               );
             })}

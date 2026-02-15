@@ -38,22 +38,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
-        const formData = await req.formData();
-        const file = formData.get('file') as File | null;
-        const title = formData.get('title') as string | null;
-        const linkUrl = formData.get('linkUrl') as string | null;
-        const sortOrder = formData.get('sortOrder') ? parseInt(formData.get('sortOrder') as string) : 0;
+        const body = await req.json();
+        const { title, linkUrl, imageUrl, sortOrder } = body;
 
-        if (!file) {
-            return NextResponse.json({ error: 'File is required' }, { status: 400 });
+        if (!imageUrl) {
+            return NextResponse.json({ error: 'Image URL is required' }, { status: 400 });
         }
-
-        // Save File
-        const { url } = await saveImageFile(file);
 
         // Insert DB
         const [newSlide] = await db.insert(sliderImages).values({
-            imageUrl: url,
+            imageUrl: imageUrl,
             title: title || null,
             linkUrl: linkUrl || null,
             displayOrder: sortOrder,

@@ -28,7 +28,7 @@ export default function AdminGalleryPage() {
 
     const [title, setTitle] = useState('');
     const [category, setCategory] = useState<'events' | 'campus' | 'reunion' | 'other'>('events');
-    const [file, setFile] = useState<File | null>(null);
+    const [imageUrl, setImageUrl] = useState('');
     const [previewUrl, setPreviewUrl] = useState<string>('');
 
     const fetchGallery = async () => {
@@ -54,41 +54,27 @@ export default function AdminGalleryPage() {
         fetchGallery();
     }, []);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            if (selectedFile.size > 5 * 1024 * 1024) {
-                toast.error('File too large (Max 5MB)');
-                return;
-            }
-            setFile(selectedFile);
-            setPreviewUrl(URL.createObjectURL(selectedFile));
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category);
+            const payload = {
+                title,
+                category,
+                imageUrl
+            };
 
-            if (file) {
-                formData.append('file', file);
-            }
-
-            // POST only for now (Creation)
-            if (!file) {
-                toast.error('Image file is required');
+            if (!imageUrl) {
+                toast.error('Image URL is required');
                 setIsSubmitting(false);
                 return;
             }
 
             const res = await fetch('/api/admin/gallery', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
 
             if (!res.ok) {
@@ -111,7 +97,7 @@ export default function AdminGalleryPage() {
         setShowForm(false);
         setTitle('');
         setCategory('events');
-        setFile(null);
+        setImageUrl('');
         setPreviewUrl('');
         setIsSubmitting(false);
     };
@@ -154,7 +140,6 @@ export default function AdminGalleryPage() {
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g., Alumni Meet 2024 Group Photo"
-                                    required
                                     autoFocus
                                 />
                             </div>
@@ -178,12 +163,15 @@ export default function AdminGalleryPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="file">Image File <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="imageUrl">Image URL <span className="text-red-500">*</span></Label>
                                 <Input
-                                    id="file"
-                                    type="file"
-                                    accept="image/png, image/jpeg, image/webp"
-                                    onChange={handleFileChange}
+                                    id="imageUrl"
+                                    value={imageUrl}
+                                    onChange={(e) => {
+                                        setImageUrl(e.target.value);
+                                        setPreviewUrl(e.target.value);
+                                    }}
+                                    placeholder="https://example.com/photo.jpg"
                                     required
                                 />
                                 {previewUrl && (
@@ -193,6 +181,7 @@ export default function AdminGalleryPage() {
                                             src={previewUrl}
                                             alt="Preview"
                                             className="w-full h-full object-contain"
+                                            onError={(e) => { (e.target as any).src = 'https://placehold.co/600x400?text=Invalid+URL'; }}
                                         />
                                     </div>
                                 )}
@@ -217,12 +206,18 @@ export default function AdminGalleryPage() {
                     {images.map(image => (
                         <div key={image.id} className="bg-white border border-gray-200 overflow-hidden shadow-sm">
                             <div className="h-48 overflow-hidden bg-gray-100">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={image.imageUrl}
-                                    alt={image.title}
-                                    className="w-full h-full object-cover transition-transform hover:scale-105"
-                                />
+                                {image.imageUrl ? (
+                                    <img
+                                        src={image.imageUrl}
+                                        alt={image.title}
+                                        className="w-full h-full object-cover transition-transform hover:scale-105"
+                                        onError={(e) => { (e.target as any).src = 'https://placehold.co/600x400?text=Invalid+Image'; }}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                                        <span className="text-sm">No Image</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="p-3">
                                 <h3 className="font-semibold text-gray-800 text-sm mb-1 truncate">{image.title}</h3>

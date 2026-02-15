@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GripVertical, ArrowUp, ArrowDown, Trash2, Edit } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 
@@ -29,17 +29,16 @@ export default function AdminSliderPage() {
 
     // Form State
     const [title, setTitle] = useState('');
-    const [linkUrl, setLinkUrl] = useState(''); // Changed from link to linkUrl to match Schema
-    const [file, setFile] = useState<File | null>(null);
+    const [linkUrl, setLinkUrl] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
     const [previewUrl, setPreviewUrl] = useState<string>('');
 
     const fetchSliders = async () => {
         try {
-            const res = await fetch('/api/slider?admin=true'); // Public GET is fine too, but api/admin/slider gives same
+            const res = await fetch('/api/slider?admin=true');
             if (!res.ok) throw new Error('Failed to fetch');
             const data = await res.json();
             if (data.data) {
-                // Ensure sorted by displayOrder
                 const sorted = data.data.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
                 setImages(sorted);
             }
@@ -52,91 +51,38 @@ export default function AdminSliderPage() {
         fetchSliders();
     }, []);
 
-    const saveReorder = async (newImages: SliderImage[]) => {
-        // Optimistic update
-        setImages(newImages);
-        toast.info('Reorder functionality requires backend support (Not implemented in this task)');
-    };
-
-    // Drag and Drop Handlers (Keep existing UI logic)
-    const [draggedItem, setDraggedItem] = useState<SliderImage | null>(null);
-
-    const handleDragStart = (e: React.DragEvent, item: SliderImage) => {
-        setDraggedItem(item);
-        e.dataTransfer.effectAllowed = 'move';
-    };
-
-    const handleDragOver = (e: React.DragEvent, index: number) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-    };
-
-    const handleDrop = (e: React.DragEvent, targetIndex: number) => {
-        e.preventDefault();
-        if (!draggedItem) return;
-        const currentImages = [...images];
-        const draggedIndex = currentImages.findIndex(i => i.id === draggedItem.id);
-        if (draggedIndex === targetIndex) return;
-        currentImages.splice(draggedIndex, 1);
-        currentImages.splice(targetIndex, 0, draggedItem);
-        saveReorder(currentImages);
-        setDraggedItem(null);
-    };
-
-    const handleMove = (index: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === images.length - 1) return;
-        const newImages = [...images];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
-        saveReorder(newImages);
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            // Validate size/type frontend side too
-            if (selectedFile.size > 5 * 1024 * 1024) {
-                toast.error('File too large (Max 5MB)');
-                return;
-            }
-            setFile(selectedFile);
-            setPreviewUrl(URL.createObjectURL(selectedFile));
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
-            const formData = new FormData();
-            formData.append('title', title);
-            if (linkUrl) formData.append('linkUrl', linkUrl);
-
-            if (file) {
-                formData.append('file', file);
-            }
+            const payload = {
+                title,
+                linkUrl,
+                imageUrl,
+                sortOrder: images.length + 1
+            };
 
             if (editingId) {
                 // PATCH
                 await fetch(`/api/admin/slider/${editingId}`, {
                     method: 'PATCH',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
                 toast.success('Slider updated');
             } else {
                 // POST
-                if (!file) {
-                    toast.error('Image file is required for new slides');
+                if (!imageUrl) {
+                    toast.error('Image URL is required');
                     setIsSubmitting(false);
                     return;
                 }
-                formData.append('sortOrder', (images.length + 1).toString());
 
                 const res = await fetch('/api/admin/slider', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
                 if (!res.ok) {
@@ -161,8 +107,8 @@ export default function AdminSliderPage() {
         setEditingId(image.id);
         setTitle(image.title || '');
         setLinkUrl(image.linkUrl || image.link || '');
-        setPreviewUrl(image.imageUrl); // Show existing image as preview
-        setFile(null); // Reset file input
+        setImageUrl(image.imageUrl || '');
+        setPreviewUrl(image.imageUrl || '');
         setShowForm(true);
     };
 
@@ -171,7 +117,7 @@ export default function AdminSliderPage() {
         setEditingId(null);
         setTitle('');
         setLinkUrl('');
-        setFile(null);
+        setImageUrl('');
         setPreviewUrl('');
         setIsSubmitting(false);
     };
@@ -241,17 +187,17 @@ export default function AdminSliderPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="file">Image File <span className="text-red-500">*</span></Label>
-                                        <div className="flex items-center gap-4">
-                                            <Input
-                                                id="file"
-                                                type="file"
-                                                accept="image/png, image/jpeg, image/webp"
-                                                onChange={handleFileChange}
-                                                className="cursor-pointer"
-                                                required={!editingId} // Required only for new
-                                            />
-                                        </div>
+                                        <Label htmlFor="imageUrl">Image URL <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="imageUrl"
+                                            value={imageUrl}
+                                            onChange={(e) => {
+                                                setImageUrl(e.target.value);
+                                                setPreviewUrl(e.target.value);
+                                            }}
+                                            placeholder="https://example.com/image.jpg"
+                                            required
+                                        />
                                         {previewUrl && (
                                             <div className="mt-2 relative w-full h-40 bg-gray-100 rounded-md overflow-hidden border">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -259,6 +205,7 @@ export default function AdminSliderPage() {
                                                     src={previewUrl}
                                                     alt="Preview"
                                                     className="w-full h-full object-contain"
+                                                    onError={(e) => { (e.target as any).src = 'https://placehold.co/600x400?text=Invalid+URL'; }}
                                                 />
                                             </div>
                                         )}
@@ -295,45 +242,23 @@ export default function AdminSliderPage() {
                     {images.map((image, index) => (
                         <div
                             key={image.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, image)}
-                            onDragOver={(e) => handleDragOver(e, index)}
-                            onDrop={(e) => handleDrop(e, index)}
-                            className={`bg-white border overflow-hidden shadow-sm transition-all group/card relative ${image.isActive ? 'border-gray-200' : 'border-gray-200 opacity-60'} ${draggedItem?.id === image.id ? 'opacity-40 border-dashed border-2 border-gray-400' : ''}`}
+                            className={`bg-white border overflow-hidden shadow-sm transition-all group/card relative ${image.isActive ? 'border-gray-200' : 'border-gray-200 opacity-60'}`}
                         >
-                            {/* Drag Handle Overlay */}
-                            <div className="absolute top-2 left-2 z-10 cursor-move p-1 bg-black/30 rounded text-white opacity-0 group-hover/card:opacity-100 transition-opacity">
-                                <GripVertical size={20} />
-                            </div>
 
-                            {/* Order Controls */}
-                            <div className="absolute top-2 left-10 z-10 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                                <button
-                                    onClick={() => handleMove(index, 'up')}
-                                    disabled={index === 0}
-                                    className="p-1 bg-white/90 rounded hover:bg-white text-gray-700 disabled:opacity-30"
-                                    title="Move Up"
-                                >
-                                    <ArrowUp size={16} />
-                                </button>
-                                <button
-                                    onClick={() => handleMove(index, 'down')}
-                                    disabled={index === images.length - 1}
-                                    className="p-1 bg-white/90 rounded hover:bg-white text-gray-700 disabled:opacity-30"
-                                    title="Move Down"
-                                >
-                                    <ArrowDown size={16} />
-                                </button>
-                            </div>
 
                             <div className="h-48 overflow-hidden bg-gray-100 relative group">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={image.imageUrl}
-                                    alt={image.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    onError={(e) => { (e.target as any).src = 'https://placehold.co/600x400?text=Invalid+Image'; }}
-                                />
+                                {image.imageUrl ? (
+                                    <img
+                                        src={image.imageUrl}
+                                        alt={image.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        onError={(e) => { (e.target as any).src = 'https://placehold.co/600x400?text=Invalid+Image'; }}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                                        <span className="text-sm">No Image</span>
+                                    </div>
+                                )}
                                 {(image.linkUrl || image.link) && (
                                     <div className="absolute bottom-0 right-0 bg-black/50 text-white text-xs px-2 py-1">
                                         Has Link

@@ -108,7 +108,7 @@ export const eventRegistrations = pgTable('event_registrations', {
 
 export const galleryImages = pgTable('gallery_images', {
     id: uuid('id').defaultRandom().primaryKey(),
-    imageUrl: varchar('image_url').notNull(),
+    imageUrl: varchar('image_url'),
     title: varchar('title'),
     category: varchar('category'),
     isActive: boolean('is_active').default(true).notNull(),
@@ -117,7 +117,7 @@ export const galleryImages = pgTable('gallery_images', {
 
 export const sliderImages = pgTable('slider_images', {
     id: uuid('id').defaultRandom().primaryKey(),
-    imageUrl: varchar('image_url').notNull(),
+    imageUrl: varchar('image_url'),
     title: varchar('title'),
     linkUrl: varchar('link_url'), // Added for click-through link
     displayOrder: integer('display_order').default(0).notNull(),
