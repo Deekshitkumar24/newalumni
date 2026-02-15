@@ -116,13 +116,34 @@ export default function Footer() {
             </div>
 
             {/* Bottom Bar */}
-            <div className="border-t border-gray-800 mt-12 pt-8">
-                <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                    <p>&copy; {new Date().getFullYear()} VJIT Alumni Association. All Rights Reserved.</p>
-                    <div className="flex gap-6 mt-4 md:mt-0">
-                        <a href="https://vjit.edu.in" target="_blank" rel="noopener noreferrer" className="!text-gray-300 hover:!text-white transition-colors">VJIT Main Website</a>
-                        <Link href="/privacy" className="!text-gray-300 hover:!text-white transition-colors">Privacy Policy</Link>
-                        <Link href="/terms" className="!text-gray-300 hover:!text-white transition-colors">Terms of Use</Link>
+            <div className="border-t border-gray-800 mt-12 pt-8 pb-8">
+                <div className="container mx-auto px-4">
+                    {/* Copyright & Links */}
+                    <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                        <p>&copy; {new Date().getFullYear()} VJIT Alumni Association. All Rights Reserved.</p>
+                        <div className="flex gap-6 mt-4 md:mt-0">
+                            <a href="https://vjit.edu.in" target="_blank" rel="noopener noreferrer" className="!text-gray-300 hover:!text-white transition-colors">VJIT Main Website</a>
+                            <Link href="/privacy" className="!text-gray-300 hover:!text-white transition-colors">Privacy Policy</Link>
+                            <Link href="/terms" className="!text-gray-300 hover:!text-white transition-colors">Terms of Use</Link>
+                        </div>
+                    </div>
+
+                    {/* Developer Credit */}
+                    <div className="mt-8 pt-6 border-t border-gray-800/50 flex justify-center md:justify-end">
+                        <div className="flex items-center gap-2 text-base text-gray-500">
+                            <span>Developed & Maintained by</span>
+                            <a
+                                href="https://www.linkedin.com/in/deekshit-kumar-46793a330/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-center gap-1.5 text-white hover:text-[#DAA520] transition-colors font-semibold focus:outline-none focus:underline"
+                            >
+                                Deekshit Kumar K.
+                                <span className="bg-[#0077b5] text-white rounded-[2px] p-[1px] w-4 h-4 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity" title="LinkedIn">
+                                    <svg fill="currentColor" viewBox="0 0 24 24" className="w-3 h-3"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+                                </span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
