@@ -19,4 +19,14 @@ export function validateEnv() {
     return parsed.data;
 }
 
-export const env = validateEnv();
+// Lazy validation: only runs at runtime when env is first accessed, not at import/build time
+let _env: z.infer<typeof envSchema> | undefined;
+export const env = new Proxy({} as z.infer<typeof envSchema>, {
+    get(_target, prop: string) {
+        if (!_env) {
+            _env = validateEnv();
+        }
+        return _env[prop as keyof typeof _env];
+    },
+});
+
