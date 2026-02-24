@@ -97,15 +97,26 @@ function SkeletonCard() {
 }
 
 export default function SuggestionsPage() {
-    const { user } = useAuth();
+    const { user, isLoading: authLoading } = useAuth();
     const isAdmin = user?.role === 'admin';
 
     const [suggestions, setSuggestions] = useState<(Suggestion | SuggestionWithCreator)[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Tabs
-    const [activeTab, setActiveTab] = useState<'my' | 'all'>(isAdmin ? 'all' : 'my');
+    // Tabs — set default based on role once user loads
+    const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
+    const [tabInitialized, setTabInitialized] = useState(false);
+
+    // Set the correct default tab once user loads
+    useEffect(() => {
+        if (!authLoading && user && !tabInitialized) {
+            if (user.role === 'admin') {
+                setActiveTab('all');
+            }
+            setTabInitialized(true);
+        }
+    }, [authLoading, user, tabInitialized]);
 
     // Filters (admin "All" tab)
     const [searchQuery, setSearchQuery] = useState('');
@@ -157,9 +168,19 @@ export default function SuggestionsPage() {
         }
     }, [activeTab, isAdmin, statusFilter, categoryFilter, priorityFilter, searchQuery]);
 
+    // When auth is done loading but there's no user, stop the page loading state
     useEffect(() => {
-        if (user) fetchSuggestions();
-    }, [user, fetchSuggestions]);
+        if (!authLoading && !user) {
+            setLoading(false);
+            setError('You must be logged in to view suggestions. Please log in again.');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading, user?.id]);
+
+    useEffect(() => {
+        if (user?.id) fetchSuggestions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id, fetchSuggestions]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
