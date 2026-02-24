@@ -26,6 +26,7 @@ export interface User {
   careerJourney?: string;
   imageUrl?: string;
   phone?: string;
+  settings?: Record<string, any>;
 }
 
 export interface Student extends User {
