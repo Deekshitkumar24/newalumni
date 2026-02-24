@@ -1,51 +1,53 @@
 import jwt from 'jsonwebtoken';
 import { env } from '@/lib/env';
 
-const JWT_SECRET = env.JWT_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || env.JWT_SECRET;
+// Lazy getters — avoid triggering env validation at build time.
+const getJwtSecret = () => env.JWT_SECRET;
+const getRefreshSecret = () => process.env.REFRESH_TOKEN_SECRET || env.JWT_SECRET;
 
 // Access Token: Short-lived (e.g., 15m)
 export const signAccessToken = (payload: object): string => {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' }); // 15 mins
+    return jwt.sign(payload, getJwtSecret(), { expiresIn: '15m' });
 };
 
 // Refresh Token: Long-lived (e.g., 7d)
 export const signRefreshToken = (payload: object): string => {
-    return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: '7d' }); // 7 days
+    return jwt.sign(payload, getRefreshSecret(), { expiresIn: '7d' });
 };
 
 export const verifyAccessToken = (token: string): any => {
     try {
-        return jwt.verify(token, JWT_SECRET);
+        return jwt.verify(token, getJwtSecret());
     } catch (error: any) {
         if (process.env.NODE_ENV !== 'production') {
             console.error('[JWT Debug] Access Token Verification Failed:', {
                 tokenPresent: !!token,
                 errorName: error.name,
                 errorMessage: error.message,
-                jwtSecretPresent: !!JWT_SECRET
-            });
-        }
-        return null; // Return null if verification fails
-    }
-};
-
-export const verifyRefreshToken = (token: string): any => {
-    try {
-        return jwt.verify(token, REFRESH_TOKEN_SECRET);
-    } catch (error: any) {
-        if (process.env.NODE_ENV !== 'production') {
-            console.error('[JWT Debug] Refresh Token Verification Failed:', {
-                tokenPresent: !!token,
-                errorName: error.name,
-                errorMessage: error.message,
-                jwtSecretPresent: !!REFRESH_TOKEN_SECRET
+                jwtSecretPresent: !!getJwtSecret()
             });
         }
         return null;
     }
 };
 
-// Keep original for backward compat if needed, or mapping
+export const verifyRefreshToken = (token: string): any => {
+    try {
+        return jwt.verify(token, getRefreshSecret());
+    } catch (error: any) {
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('[JWT Debug] Refresh Token Verification Failed:', {
+                tokenPresent: !!token,
+                errorName: error.name,
+                errorMessage: error.message,
+                jwtSecretPresent: !!getRefreshSecret()
+            });
+        }
+        return null;
+    }
+};
+
+// Keep original for backward compat
 export const signToken = signAccessToken;
 export const verifyToken = verifyAccessToken;
+
