@@ -56,6 +56,8 @@ export async function GET(req: Request) {
                 const fields = isCount ? { count: sql<number>`count(*)` } : {
                     id: users.id,
                     fullName: users.fullName,
+                    name: users.name,
+                    email: users.email,
                     role: users.role,
                     profileImage: users.profileImage,
                     department: studentProfiles.department,
@@ -77,6 +79,8 @@ export async function GET(req: Request) {
                 const fields = isCount ? { count: sql<number>`count(*)` } : {
                     id: users.id,
                     fullName: users.fullName,
+                    name: users.name,
+                    email: users.email,
                     role: users.role,
                     profileImage: users.profileImage,
                     department: alumniProfiles.department,
@@ -107,9 +111,9 @@ export async function GET(req: Request) {
         const total = Number(countRes[0]?.count || 0);
 
         return NextResponse.json({
-            data: data.map(u => ({
+            data: data.map((u: any) => ({
                 ...u,
-                name: u.fullName, // Map for UI if needed
+                name: u.fullName || u.name || 'Unknown',
                 // Add friendly display fields
                 currentRole: u.designation, // Map designation to currentRole
                 currentCompany: u.company,

@@ -1,16 +1,98 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Student } from '@/types';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, RefreshCw } from 'lucide-react';
 
 export default function StudentBatchPage() {
     const router = useRouter();
     const [user, setUser] = useState<Student | null>(null);
     const [batchmates, setBatchmates] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    // Search & filter state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+    const [departmentFilter, setDepartmentFilter] = useState('');
+    const [batchYearFilter, setBatchYearFilter] = useState('');
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Derive unique departments and batch years for filter dropdowns
+    const departments = useMemo(() => {
+        const depts = new Set(batchmates.map(s => s.department).filter(Boolean));
+        return Array.from(depts).sort();
+    }, [batchmates]);
+
+    const batchYears = useMemo(() => {
+        const years = new Set(batchmates.map(s => s.batch).filter(Boolean));
+        return Array.from(years).sort((a, b) => b - a);
+    }, [batchmates]);
+
+    // Filtered list
+    const filteredBatchmates = useMemo(() => {
+        let list = batchmates;
+        const q = debouncedQuery.toLowerCase().trim();
+
+        if (q) {
+            list = list.filter(s =>
+                (s.name && s.name.toLowerCase().includes(q)) ||
+                (s.email && s.email.toLowerCase().includes(q)) ||
+                (s.rollNumber && s.rollNumber.toLowerCase().includes(q))
+            );
+        }
+
+        if (departmentFilter) {
+            list = list.filter(s => s.department === departmentFilter);
+        }
+
+        if (batchYearFilter) {
+            list = list.filter(s => s.batch === parseInt(batchYearFilter));
+        }
+
+        return list;
+    }, [batchmates, debouncedQuery, departmentFilter, batchYearFilter]);
+
+    const fetchBatchmates = useCallback(async (currentUser: Student) => {
+        setLoading(true);
+        setError(false);
+        try {
+            const year = currentUser.batch;
+
+            if (!year) {
+                console.warn("User has no batch/year defined.");
+                setLoading(false);
+                return;
+            }
+
+            const params = new URLSearchParams({
+                role: 'student',
+                year: year.toString(),
+                limit: '100'
+            });
+
+            const res = await fetch(`/api/directory?${params}`);
+            if (!res.ok) throw new Error('Failed to fetch');
+            const data = await res.json();
+
+            if (data.data) {
+                setBatchmates(data.data.filter((s: any) => s.id !== currentUser.id));
+            }
+        } catch (err) {
+            console.error("Failed to fetch batchmates", err);
+            setError(true);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         const userStr = localStorage.getItem('vjit_current_user');
@@ -26,49 +108,11 @@ export default function StudentBatchPage() {
         }
 
         setUser(currentUser);
-
-        // Fetch batchmates
-        const fetchBatchmates = async () => {
-            try {
-                // Determine batch year.
-                // Student type might have 'batch' or 'graduationYear'.
-                // If currentUser has graduationYear, we use that.
-                // Or we fetch current user profile again?
-                // Assuming currentUser object is sufficient for now.
-                const year = currentUser.batch;
-
-                if (!year) {
-                    console.warn("User has no batch/year defined.");
-                    setLoading(false);
-                    return;
-                }
-
-                // Query API for students in same year
-                const params = new URLSearchParams({
-                    role: 'student',
-                    year: year.toString(),
-                    limit: '100' // Get a good number
-                });
-
-                const res = await fetch(`/api/directory?${params}`);
-                const data = await res.json();
-
-                if (data.data) {
-                    // Filter out self if returned
-                    setBatchmates(data.data.filter((s: any) => s.id !== currentUser.id));
-                }
-            } catch (error) {
-                console.error("Failed to fetch batchmates", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchBatchmates();
-    }, [router]);
+        fetchBatchmates(currentUser);
+    }, [router, fetchBatchmates]);
 
     if (!user) {
-        return null; // or loading
+        return null;
     }
 
     return (
@@ -76,10 +120,56 @@ export default function StudentBatchPage() {
             <div className="container mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold text-[#800000] mb-6">My Batch ({user.batch})</h1>
 
+                {/* Search Bar */}
+                <div className="mb-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by name, email, or roll number..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-colors"
+                        />
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-wrap gap-3 mb-6">
+                    <select
+                        value={departmentFilter}
+                        onChange={e => setDepartmentFilter(e.target.value)}
+                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-colors"
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={batchYearFilter}
+                        onChange={e => setBatchYearFilter(e.target.value)}
+                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-colors"
+                    >
+                        <option value="">All Batch Years</option>
+                        {batchYears.map(year => (
+                            <option key={year} value={year.toString()}>{year}</option>
+                        ))}
+                    </select>
+                    {(searchQuery || departmentFilter || batchYearFilter) && (
+                        <button
+                            onClick={() => { setSearchQuery(''); setDepartmentFilter(''); setBatchYearFilter(''); }}
+                            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                            Clear Filters
+                        </button>
+                    )}
+                </div>
+
                 <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                     <div className="bg-[#800000] text-white px-6 py-4 flex justify-between items-center">
                         <h2 className="font-semibold text-lg">Batchmates</h2>
-                        <span className="bg-white/20 px-2 py-0.5 rounded text-sm">{batchmates.length} Found</span>
+                        <span className="bg-white/20 px-2 py-0.5 rounded text-sm">{filteredBatchmates.length} Found</span>
                     </div>
 
                     {loading ? (
@@ -88,9 +178,20 @@ export default function StudentBatchPage() {
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : batchmates.length > 0 ? (
+                    ) : error ? (
+                        <div className="p-8 text-center">
+                            <p className="text-gray-600 mb-4">Couldn't load batch members</p>
+                            <button
+                                onClick={() => user && fetchBatchmates(user)}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#800000] text-white rounded-lg hover:bg-[#660000] transition-colors text-sm font-medium"
+                            >
+                                <RefreshCw size={16} />
+                                Retry
+                            </button>
+                        </div>
+                    ) : filteredBatchmates.length > 0 ? (
                         <div className="divide-y divide-gray-200">
-                            {batchmates.map(student => (
+                            {filteredBatchmates.map(student => (
                                 <div key={student.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <Avatar className="h-10 w-10">
@@ -123,6 +224,10 @@ export default function StudentBatchPage() {
                                     )}
                                 </div>
                             ))}
+                        </div>
+                    ) : batchmates.length > 0 ? (
+                        <div className="p-8 text-center text-gray-500">
+                            No matching members found
                         </div>
                     ) : (
                         <div className="p-8 text-center text-gray-500">

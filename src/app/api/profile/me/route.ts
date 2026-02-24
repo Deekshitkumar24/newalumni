@@ -89,6 +89,7 @@ export async function GET(req: Request) {
                 role: user.role,
                 status: user.status,
                 profileImage: user.profileImage,
+                canCreateEvents: user.canCreateEvents,
                 settings: user.settings, // Return settings
                 createdAt: user.createdAt,
             },

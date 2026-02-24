@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { events, users } from '@/db/schema';
+import { events, users, eventInvitations, eventRegistrations } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
 import { eq, sql, and } from 'drizzle-orm';
 import { z } from 'zod';
@@ -19,7 +19,41 @@ async function getAuthUser(req: Request) {
     return verifyToken(token);
 }
 
-// GET: Single Event
+// Check if user can view this event based on visibility rules
+async function canUserViewEvent(event: any, auth: any): Promise<boolean> {
+    if (!event) return false;
+
+    // Admin can see everything
+    if (auth?.role === 'admin') return true;
+
+    // Creator can always see their own event
+    if (auth && event.creatorId === auth.id) return true;
+
+    switch (event.visibility) {
+        case 'public':
+            return true;
+
+        case 'students_only':
+            return auth?.role === 'student';
+
+        case 'invite_only':
+            if (!auth || auth.role !== 'alumni') return false;
+            // Check if alumni has an accepted invitation
+            const invitation = await db.query.eventInvitations.findFirst({
+                where: and(
+                    eq(eventInvitations.eventId, event.id),
+                    eq(eventInvitations.invitedUserId, auth.id),
+                    eq(eventInvitations.status, 'accepted')
+                )
+            });
+            return !!invitation;
+
+        default:
+            return true;
+    }
+}
+
+// GET: Single Event (with visibility enforcement)
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
@@ -31,11 +65,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
 
-        // Get registration count
-        const { eventRegistrations } = await import('@/db/schema');
-        const { count } = await import('drizzle-orm'); // count is not exported from drizzle-orm top level usually, use sql or count() fn
-        // actually easier to use db.select({ count: sql<number>`count(*)` })
+        // Enforce visibility — return 404 to avoid leaking existence
+        const canView = await canUserViewEvent(event, auth);
+        if (!canView) {
+            return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+        }
 
+        // Get registration count
         const [regCount] = await db.select({ count: sql<number>`count(*)` })
             .from(eventRegistrations)
             .where(eq(eventRegistrations.eventId, id));
@@ -51,12 +87,32 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             if (checkReg) isRegistered = true;
         }
 
+        // Get invitation info for invite_only events if user is admin or creator
+        let invitations: any[] = [];
+        if (event.visibility === 'invite_only' && auth && (auth.role === 'admin' || event.creatorId === auth.id)) {
+            invitations = await db.select({
+                id: eventInvitations.id,
+                status: eventInvitations.status,
+                message: eventInvitations.message,
+                createdAt: eventInvitations.createdAt,
+                respondedAt: eventInvitations.respondedAt,
+                invitedUser: {
+                    id: users.id,
+                    name: users.name,
+                    email: users.email,
+                    profileImage: users.profileImage,
+                },
+            })
+                .from(eventInvitations)
+                .leftJoin(users, eq(eventInvitations.invitedUserId, users.id))
+                .where(eq(eventInvitations.eventId, id));
+        }
+
         return NextResponse.json({
             ...event,
             registrationsCount: Number(regCount.count),
             isRegistered,
-            // Add creator info if needed? UI showed it might be useful but redundant?
-            // Let's stick to what's here + reg info.
+            invitations,
         });
 
     } catch (error) {

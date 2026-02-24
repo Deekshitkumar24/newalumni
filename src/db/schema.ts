@@ -11,6 +11,8 @@ export const mentorshipStatusEnum = pgEnum('mentorship_status', ['pending', 'acc
 export const moderationStatusEnum = pgEnum('moderation_status', ['pending', 'approved', 'rejected']);
 
 export const reportStatusEnum = pgEnum('report_status', ['open', 'resolved', 'dismissed']);
+export const eventVisibilityEnum = pgEnum('event_visibility', ['public', 'students_only', 'invite_only']);
+export const eventInvitationStatusEnum = pgEnum('event_invitation_status', ['pending', 'accepted', 'declined']);
 export const notificationTypeEnum = pgEnum('notification_type', [
     'mentorship_request',
     'mentorship_accepted',
@@ -21,9 +23,15 @@ export const notificationTypeEnum = pgEnum('notification_type', [
     'system_alert',
     'job_approved',
     'job_rejected',
-    'admin_announcement'
+    'admin_announcement',
+    'event_invitation',
+    'event_invitation_accepted',
+    'event_invitation_declined'
 ]);
 export const conversationTypeEnum = pgEnum('conversation_type', ['direct', 'group']);
+export const suggestionCategoryEnum = pgEnum('suggestion_category', ['BUG', 'FEATURE', 'UX', 'CONTENT', 'OTHER']);
+export const suggestionStatusEnum = pgEnum('suggestion_status', ['NEW', 'IN_REVIEW', 'PLANNED', 'DONE', 'REJECTED']);
+export const suggestionPriorityEnum = pgEnum('suggestion_priority', ['LOW', 'MEDIUM', 'HIGH']);
 
 // 1. Identity & Access
 export const users = pgTable('users', {
@@ -35,6 +43,7 @@ export const users = pgTable('users', {
     role: userRoleEnum('role').default('student').notNull(),
     status: userStatusEnum('status').default('pending').notNull(),
     profileImage: varchar('profile_image'),
+    canCreateEvents: boolean('can_create_events').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     deletedAt: timestamp('deleted_at'), // Soft Delete
@@ -104,10 +113,25 @@ export const events = pgTable('events', {
     date: timestamp('date').notNull(),
     venue: varchar('venue').notNull(),
     posterUrl: varchar('poster_url'),
+    visibility: eventVisibilityEnum('visibility').default('public').notNull(),
     creatorId: uuid('creator_id').notNull().references(() => users.id),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-
 });
+
+export const eventInvitations = pgTable('event_invitations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+    invitedUserId: uuid('invited_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    invitedByUserId: uuid('invited_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    status: eventInvitationStatusEnum('status').default('pending').notNull(),
+    message: text('message'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    respondedAt: timestamp('responded_at'),
+}, (t) => ({
+    uniqueInvitation: uniqueIndex('unique_event_invitation').on(t.eventId, t.invitedUserId),
+    invitedUserIdx: index('invitation_invited_user_idx').on(t.invitedUserId),
+    eventIdx: index('invitation_event_idx').on(t.eventId),
+}));
 
 export const eventRegistrations = pgTable('event_registrations', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -265,6 +289,23 @@ export const auditLogs = pgTable('audit_logs', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// 7. Suggestions
+export const suggestions = pgTable('suggestions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    createdByUserId: uuid('created_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    title: varchar('title').notNull(),
+    description: text('description').notNull(),
+    category: suggestionCategoryEnum('category').default('OTHER').notNull(),
+    status: suggestionStatusEnum('status').default('NEW').notNull(),
+    priority: suggestionPriorityEnum('priority').default('MEDIUM').notNull(),
+    adminResponse: text('admin_response'),
+    screenshotUrl: text('screenshot_url'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+    createdByUserIdx: index('suggestion_created_by_user_idx').on(t.createdByUserId),
+}));
+
 
 // --- RELATIONS ---
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -278,6 +319,14 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     }),
     sentMessages: many(messages),
     notifications: many(notifications),
+    suggestions: many(suggestions),
+}));
+
+export const suggestionsRelations = relations(suggestions, ({ one }) => ({
+    createdByUser: one(users, {
+        fields: [suggestions.createdByUserId],
+        references: [users.id],
+    }),
 }));
 
 export const conversationsRelations = relations(conversations, ({ many }) => ({
@@ -293,5 +342,22 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     sender: one(users, {
         fields: [messages.senderId],
         references: [users.id],
+    }),
+}));
+
+export const eventInvitationsRelations = relations(eventInvitations, ({ one }) => ({
+    event: one(events, {
+        fields: [eventInvitations.eventId],
+        references: [events.id],
+    }),
+    invitedUser: one(users, {
+        fields: [eventInvitations.invitedUserId],
+        references: [users.id],
+        relationName: 'invitedUser',
+    }),
+    invitedByUser: one(users, {
+        fields: [eventInvitations.invitedByUserId],
+        references: [users.id],
+        relationName: 'invitedByUser',
     }),
 }));

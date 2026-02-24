@@ -130,13 +130,13 @@ export default function Footer() {
 
                     {/* Developer Credit */}
                     <div className="mt-8 pt-6 border-t border-gray-800/50 flex justify-center md:justify-end">
-                        <div className="flex items-center gap-2 text-base text-gray-500">
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
                             <span>Developed & Maintained by</span>
                             <a
                                 href="https://www.linkedin.com/in/deekshit-kumar-46793a330/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group flex items-center gap-1.5 text-white hover:text-[#DAA520] transition-colors font-semibold focus:outline-none focus:underline"
+                                className="group inline-flex items-center gap-1.5 !text-gray-300 hover:!text-[#DAA520] transition-colors font-medium focus:outline-none focus:underline"
                             >
                                 Deekshit Kumar K.
                                 <span className="bg-[#0077b5] text-white rounded-[2px] p-[1px] w-4 h-4 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity" title="LinkedIn">

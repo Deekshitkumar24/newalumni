@@ -18,7 +18,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Search,
-    Flag
+    Flag,
+    Lightbulb
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -89,6 +90,7 @@ export default function Sidebar() {
         { label: 'Jobs & Internships', href: '/dashboard/jobs', icon: Briefcase },
         { label: 'Events', href: '/dashboard/events', icon: Calendar },
         { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+        { label: 'Suggestions', href: '/dashboard/suggestions', icon: Lightbulb },
         { label: 'My Profile', href: '/dashboard/student/profile', icon: User },
     ];
 
@@ -99,6 +101,7 @@ export default function Sidebar() {
         { label: 'Post Jobs', href: '/dashboard/alumni/jobs', icon: Briefcase },
         { label: 'Events', href: '/dashboard/events', icon: Calendar },
         { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+        { label: 'Suggestions', href: '/dashboard/suggestions', icon: Lightbulb },
         { label: 'My Profile', href: '/dashboard/alumni/profile', icon: User },
     ];
 
@@ -112,6 +115,7 @@ export default function Sidebar() {
         { label: 'Slider Management', href: '/dashboard/admin/slider', icon: ImageIcon },
         { label: 'Gallery', href: '/dashboard/admin/gallery', icon: ImageIcon },
         { label: 'Notices', href: '/dashboard/admin/notices', icon: ShieldAlert },
+        { label: 'Suggestions', href: '/dashboard/suggestions', icon: Lightbulb },
     ];
 
     let menuItems: any[] = [];
@@ -140,37 +144,6 @@ export default function Sidebar() {
                     </button>
                 </div>
 
-                {/* User Identity Section */}
-                <div className={cn(
-                    "border-b border-gray-100 transition-all duration-300",
-                    collapsed ? "p-4 flex justify-center items-center" : "p-6"
-                )}>
-                    {collapsed ? (
-                        <Avatar className="h-10 w-10 border border-gray-100 cursor-pointer" onClick={toggleSidebar}>
-                            <AvatarImage src={user?.profileImage || ''} />
-                            <AvatarFallback className="bg-[#1a1a2e] text-white font-bold text-sm">
-                                {user?.name?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                    ) : (
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 border-2 border-gray-100 shadow-sm">
-                                <AvatarImage src={user?.profileImage || ''} alt={user?.name} className="object-cover" />
-                                <AvatarFallback className="bg-[#1a1a2e] text-white text-lg font-bold">
-                                    {user?.name?.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="overflow-hidden">
-                                <h3 className="font-bold text-gray-900 text-sm leading-tight truncate">
-                                    {user?.name || 'User'}
-                                </h3>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mt-0.5 truncate">
-                                    {user?.role}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
                 {/* Navigation Section */}
                 <nav className={cn(

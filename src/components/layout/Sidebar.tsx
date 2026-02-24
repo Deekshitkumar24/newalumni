@@ -107,9 +107,6 @@ export default function Sidebar({ user }: SidebarProps) {
                             {user?.name?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                     </Avatar>
-                    <h3 className="font-bold text-gray-900 text-lg leading-tight truncate w-full px-2">
-                        {user?.name || 'User'}
-                    </h3>
                     <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mt-1 bg-gray-100 px-2 py-0.5 rounded-full">
                         {roleLabel}
                     </span>

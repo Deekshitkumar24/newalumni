@@ -13,6 +13,7 @@ export interface User {
   profileImage?: string;
   avatar?: string;
   department?: string;
+  canCreateEvents?: boolean;
 }
 
 export interface Student extends User {
@@ -40,7 +41,8 @@ export interface Admin extends User {
   role: 'admin';
 }
 
-// Event Types
+export type EventVisibility = 'public' | 'students_only' | 'invite_only';
+
 export interface Event {
   id: string;
   title: string;
@@ -51,10 +53,40 @@ export interface Event {
   posterImage?: string;
   link?: string;
   eventType: 'upcoming' | 'past';
-  status: 'upcoming' | 'past' | 'cancelled' | 'pending'; // Combined status for lifecycle and moderation
-  registrations: string[]; // User IDs
+  status: 'upcoming' | 'past' | 'cancelled' | 'pending';
+  visibility?: EventVisibility;
+  registrations: string[];
   createdBy: string;
   createdAt: string;
+}
+
+export type EventInvitationStatus = 'pending' | 'accepted' | 'declined';
+
+export interface EventInvitation {
+  id: string;
+  eventId: string;
+  status: EventInvitationStatus;
+  message?: string;
+  createdAt: string;
+  respondedAt?: string;
+  event?: {
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    venue: string;
+  };
+  invitedBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  invitedUser?: {
+    id: string;
+    name: string;
+    email: string;
+    profileImage?: string;
+  };
 }
 
 // Job Types
@@ -190,3 +222,29 @@ export interface Report {
   timestamp: string;
   updatedAt: string;
 }
+
+// Suggestion Types
+export type SuggestionCategory = 'BUG' | 'FEATURE' | 'UX' | 'CONTENT' | 'OTHER';
+export type SuggestionStatus = 'NEW' | 'IN_REVIEW' | 'PLANNED' | 'DONE' | 'REJECTED';
+export type SuggestionPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface Suggestion {
+  id: string;
+  createdByUserId: string;
+  title: string;
+  description: string;
+  category: SuggestionCategory;
+  status: SuggestionStatus;
+  priority: SuggestionPriority;
+  adminResponse?: string | null;
+  screenshotUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SuggestionWithCreator extends Suggestion {
+  creatorName: string;
+  creatorEmail: string;
+  creatorRole: UserRole;
+}
+

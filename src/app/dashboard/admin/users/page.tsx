@@ -23,6 +23,7 @@ type User = {
     role: 'student' | 'alumni' | 'admin';
     status: 'pending' | 'approved' | 'rejected' | 'suspended';
     profileImage?: string;
+    canCreateEvents?: boolean;
     createdAt: string;
 };
 
@@ -104,6 +105,33 @@ export default function AdminUsersPage() {
         } catch (error) {
             console.error(error);
             toast.error('Failed to delete user');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleEventPermission = async (userId: string, currentValue: boolean) => {
+        setActionLoading(userId);
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/event-permission`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ canCreateEvents: !currentValue })
+            });
+
+            if (!res.ok) throw new Error('Update failed');
+
+            const data = await res.json();
+            toast.success(data.message);
+
+            // Update local state immediately
+            setUsers(prev => prev.map(u =>
+                u.id === userId ? { ...u, canCreateEvents: !currentValue } : u
+            ));
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to update event permission');
         } finally {
             setActionLoading(null);
         }
@@ -224,15 +252,31 @@ export default function AdminUsersPage() {
 
                                                     {/* Approved Actions */}
                                                     {user.status === 'approved' && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="text-amber-600 hover:bg-amber-50"
-                                                            disabled={actionLoading === user.id}
-                                                            onClick={() => handleStatusUpdate(user.id, 'suspended')}
-                                                        >
-                                                            Suspend
-                                                        </Button>
+                                                        <>
+                                                            {user.role === 'student' && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className={user.canCreateEvents
+                                                                        ? 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100'
+                                                                        : 'text-gray-500 hover:bg-gray-50'
+                                                                    }
+                                                                    disabled={actionLoading === user.id}
+                                                                    onClick={() => handleEventPermission(user.id, !!user.canCreateEvents)}
+                                                                >
+                                                                    {user.canCreateEvents ? '✓ Event Posting' : 'Event Posting'}
+                                                                </Button>
+                                                            )}
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-amber-600 hover:bg-amber-50"
+                                                                disabled={actionLoading === user.id}
+                                                                onClick={() => handleStatusUpdate(user.id, 'suspended')}
+                                                            >
+                                                                Suspend
+                                                            </Button>
+                                                        </>
                                                     )}
 
                                                     {/* Rejected/Suspended Actions */}
