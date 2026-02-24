@@ -14,6 +14,18 @@ export interface User {
   avatar?: string;
   department?: string;
   canCreateEvents?: boolean;
+  // Profile fields merged by useAuth from Student/Alumni profiles
+  rollNumber?: string;
+  batch?: number;
+  skills?: string[];
+  interests?: string[];
+  graduationYear?: number;
+  currentCompany?: string;
+  currentRole?: string;
+  linkedIn?: string;
+  careerJourney?: string;
+  imageUrl?: string;
+  phone?: string;
 }
 
 export interface Student extends User {

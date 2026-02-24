@@ -77,7 +77,7 @@ export default function AlumniJobsPage() {
                 credentials: 'include',
                 body: JSON.stringify({
                     title: formData.title,
-                    company: formData.company || (user as any).currentCompany || '',
+                    company: formData.company || user.currentCompany || '',
                     location: formData.location,
                     description: formData.description + (formData.requirements ? '\n\nRequirements:\n' + formData.requirements : ''),
                     type: formData.type,
@@ -188,7 +188,7 @@ export default function AlumniJobsPage() {
                                             <Input
                                                 value={formData.company}
                                                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                                placeholder={(user as any).currentCompany || 'Enter company name'}
+                                                placeholder={user.currentCompany || 'Enter company name'}
                                             />
                                         </div>
                                     </div>
