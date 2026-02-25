@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users, studentProfiles, alumniProfiles } from '@/db/schema';
 import { verifyToken } from '@/lib/auth/jwt';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Zod Schemas
@@ -10,8 +10,8 @@ const studentUpdateSchema = z.object({
     rollNumber: z.string().optional(),
     department: z.string().optional(),
     batch: z.coerce.number().optional(), // Coerce form data strings to numbers
-    skills: z.array(z.string()).optional(),
-    interests: z.array(z.string()).optional(),
+    skills: z.union([z.array(z.string()), z.string()]).optional(),
+    interests: z.union([z.array(z.string()), z.string()]).optional(),
     fullName: z.string().min(2).optional(), // Allow updating full name
     profileImage: z.string().url().optional(),
 });
@@ -142,11 +142,24 @@ export async function PATCH(req: Request) {
             const { fullName, profileImage, ...profileData } = data;
 
             if (Object.keys(profileData).length > 0) {
+                // Ensure skills/interests are properly cast to jsonb
+                const insertValues: any = { userId: user.id, ...profileData };
+                const updateSet: any = { ...profileData };
+                if (profileData.skills) {
+                    const skillsJson = JSON.stringify(Array.isArray(profileData.skills) ? profileData.skills : []);
+                    insertValues.skills = sql`${skillsJson}::jsonb`;
+                    updateSet.skills = sql`${skillsJson}::jsonb`;
+                }
+                if (profileData.interests) {
+                    const interestsJson = JSON.stringify(Array.isArray(profileData.interests) ? profileData.interests : []);
+                    insertValues.interests = sql`${interestsJson}::jsonb`;
+                    updateSet.interests = sql`${interestsJson}::jsonb`;
+                }
                 await db.insert(studentProfiles)
-                    .values({ userId: user.id, ...profileData } as typeof studentProfiles.$inferInsert) // Safety
+                    .values(insertValues as typeof studentProfiles.$inferInsert)
                     .onConflictDoUpdate({
                         target: studentProfiles.userId,
-                        set: profileData,
+                        set: updateSet,
                     });
             }
 

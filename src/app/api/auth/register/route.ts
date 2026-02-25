@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users, studentProfiles, alumniProfiles } from '@/db/schema';
 import { hashPassword } from '@/lib/auth/password';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Enhanced Schema to cover profile fields
@@ -16,8 +16,8 @@ const registerSchema = z.object({
     rollNumber: z.string().optional(),
     department: z.string().optional(),
     graduationYear: z.any().optional(), // accept string or number, parse later
-    skills: z.array(z.string()).optional(),
-    interests: z.array(z.string()).optional(),
+    skills: z.union([z.array(z.string()), z.string()]).optional(),
+    interests: z.union([z.array(z.string()), z.string()]).optional(),
 
     // Alumni specific
     currentCompany: z.string().optional(),
@@ -25,6 +25,15 @@ const registerSchema = z.object({
     linkedIn: z.string().optional(),
     careerJourney: z.string().optional(),
 });
+
+// Helper: ensure value is a proper array for jsonb storage
+function toJsonbArray(val: string | string[] | undefined): string[] {
+    if (!val) return [];
+    if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch { return val.split(',').map(s => s.trim()).filter(Boolean); }
+    }
+    return val;
+}
 
 export async function POST(req: Request) {
     try {
@@ -57,14 +66,16 @@ export async function POST(req: Request) {
                 if (!data.rollNumber || !data.department || !data.graduationYear) {
                     throw new Error('Missing student details (Roll No, Dept, Year)');
                 }
+                const skillsArr = toJsonbArray(data.skills);
+                const interestsArr = toJsonbArray(data.interests);
                 await tx.insert(studentProfiles).values({
                     userId: user.id,
                     rollNumber: data.rollNumber,
                     department: data.department,
-                    batch: Number(data.graduationYear), // Mapping graduationYear to batch
-                    skills: data.skills || [],
-                    interests: data.interests || []
-                });
+                    batch: Number(data.graduationYear),
+                    skills: sql`${JSON.stringify(skillsArr)}::jsonb`,
+                    interests: sql`${JSON.stringify(interestsArr)}::jsonb`,
+                } as any);
             } else if (role === 'alumni') {
                 if (!data.graduationYear || !data.department) {
                     throw new Error('Missing alumni details (Dept, Year)');
@@ -94,7 +105,9 @@ export async function POST(req: Request) {
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: (error as z.ZodError).issues }, { status: 400 });
         }
-        console.error('Registration error:', error);
+        console.error('Registration error:', error?.message, error?.stack);
+        console.error('Registration error detail:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
+
