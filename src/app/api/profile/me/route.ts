@@ -5,6 +5,23 @@ import { verifyToken } from '@/lib/auth/jwt';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
+// ---------------------------------------------------------------------------
+// Shared JSONB helpers — identical to register/route.ts
+// ---------------------------------------------------------------------------
+function toJsonbArray(val: string | string[] | null | undefined): string[] {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.filter(Boolean);
+    try {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch { /* not JSON */ }
+    return val.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function jsonbValue(arr: string[]) {
+    return sql`${JSON.stringify(arr)}::jsonb`;
+}
+
 // Zod Schemas
 const studentUpdateSchema = z.object({
     rollNumber: z.string().optional(),
@@ -142,18 +159,18 @@ export async function PATCH(req: Request) {
             const { fullName, profileImage, ...profileData } = data;
 
             if (Object.keys(profileData).length > 0) {
-                // Ensure skills/interests are properly cast to jsonb
+                // Normalise jsonb fields with shared helpers
                 const insertValues: any = { userId: user.id, ...profileData };
                 const updateSet: any = { ...profileData };
-                if (profileData.skills) {
-                    const skillsJson = JSON.stringify(Array.isArray(profileData.skills) ? profileData.skills : []);
-                    insertValues.skills = sql`${skillsJson}::jsonb`;
-                    updateSet.skills = sql`${skillsJson}::jsonb`;
+                if (profileData.skills !== undefined) {
+                    const jv = jsonbValue(toJsonbArray(profileData.skills));
+                    insertValues.skills = jv;
+                    updateSet.skills = jv;
                 }
-                if (profileData.interests) {
-                    const interestsJson = JSON.stringify(Array.isArray(profileData.interests) ? profileData.interests : []);
-                    insertValues.interests = sql`${interestsJson}::jsonb`;
-                    updateSet.interests = sql`${interestsJson}::jsonb`;
+                if (profileData.interests !== undefined) {
+                    const jv = jsonbValue(toJsonbArray(profileData.interests));
+                    insertValues.interests = jv;
+                    updateSet.interests = jv;
                 }
                 await db.insert(studentProfiles)
                     .values(insertValues as typeof studentProfiles.$inferInsert)
